@@ -7,7 +7,7 @@ class Destinasi {
   final int price;
   final String imageUrl;
   final String description;
-  final double distnaceKm;
+  final double distanceKm;
   final bool isFavorit;
 
   const Destinasi({
@@ -19,7 +19,7 @@ class Destinasi {
     required this.price,
     required this.imageUrl,
     required this.description,
-    required this.distnaceKm,
+    required this.distanceKm,
     this.isFavorit = false,
   });
 
@@ -43,7 +43,7 @@ class Destinasi {
       price: price ?? this.price,
       imageUrl: imageUrl ?? this.imageUrl,
       description: description ?? this.description,
-      distnaceKm: distanceKm ?? this.distnaceKm,
+      distanceKm: distanceKm ?? this.distanceKm,
       isFavorit: isFavorit ?? this.isFavorit,
     );
   }
