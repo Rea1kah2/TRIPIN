@@ -1,4 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'providers/auth_provider.dart';
+import 'providers/destinasi_provider.dart';
+import 'providers/rencana_provider.dart';
 import 'screens/auth/login_screen.dart';
 import 'theme/app_theme.dart';
 
@@ -11,11 +15,18 @@ class TripinApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      title: 'TRIPIN',
-      theme: buildAppTheme(),
-      home: const LoginPage(),
+    return MultiProvider(
+        providers: [
+          ChangeNotifierProvider(create: (_) => AuthProvider()),
+          ChangeNotifierProvider(create: (_) => DestinasiProvider()),
+          ChangeNotifierProvider(create: (_) => RencanaProvider()),
+        ],
+        child: MaterialApp(
+          debugShowCheckedModeBanner: false,
+          title: 'TRIPIN',
+          theme: buildAppTheme(),
+          home: const LoginPage(),
+        ),
     );
   }
 }
