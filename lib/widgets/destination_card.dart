@@ -1,9 +1,5 @@
 import 'package:flutter/material.dart';
 
-// ======================================================
-// DESTINATION CARD
-// ======================================================
-
 class DestinationCard extends StatelessWidget {
   final String name;
   final String location;

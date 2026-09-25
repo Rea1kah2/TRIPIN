@@ -10,6 +10,7 @@ import 'screens/rencana/daftar_rencana_screen.dart';
 import 'screens/rencana/tambah_rencana_screen.dart';
 import 'theme/app_theme.dart';
 import 'widgets/bottom_nav_shell.dart';
+import 'screens/destinasi/daftar_destinasi_screen.dart';
 
 void main() {
   runApp(const TripinApp());
@@ -37,6 +38,7 @@ class TripinApp extends StatelessWidget {
           AppRoutes.home: (_) => const BottomNavShell(),
           AppRoutes.rencanaList: (_) => const DaftarRencanaScreen(),
           AppRoutes.rencanaTambah: (_) => const TambahRencanaScreen(),
+          AppRoutes.destinasiList: (_) => const DaftarDestinasiScreen(),
         },
         onGenerateRoute: AppRoutes.onGenerateRoute,
       ),

@@ -8,6 +8,7 @@ class AppRoutes {
   static const login = '/login';
   static const register = '/register';
   static const home = '/home';
+  static const destinasiList = '/destinasi';
   static const rencanaList = '/rencana';
   static const rencanaTambah = '/rencana/tambah';
   static const rencanaDetail = '/rencana/detail';
