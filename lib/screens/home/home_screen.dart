@@ -399,10 +399,6 @@ class _HomePageState extends State<HomePage> {
 
             const SizedBox(height: 30),
 
-            // ==================================================
-            // NEARBY
-            // ==================================================
-
             const Text(
               'Wisata di Sekitar Kamu 📍',
               style: TextStyle(
