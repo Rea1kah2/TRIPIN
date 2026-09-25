@@ -3,9 +3,13 @@ import 'package:provider/provider.dart';
 import 'providers/auth_provider.dart';
 import 'providers/destinasi_provider.dart';
 import 'providers/rencana_provider.dart';
+import 'routes/app_routes.dart';
 import 'screens/auth/login_screen.dart';
+import 'screens/auth/register_screen.dart';
+import 'screens/rencana/daftar_rencana_screen.dart';
+import 'screens/rencana/tambah_rencana_screen.dart';
 import 'theme/app_theme.dart';
-import 'widgets/destinasi_card.dart';
+import 'widgets/bottom_nav_shell.dart';
 
 void main() {
   runApp(const TripinApp());
@@ -26,23 +30,15 @@ class TripinApp extends StatelessWidget {
         debugShowCheckedModeBanner: false,
         title: 'TRIPIN',
         theme: buildAppTheme(),
-        home: Scaffold(
-          backgroundColor: const Color(0xFFF7FAF8),
-          body: SafeArea(
-            child: Center(
-              child: Consumer<DestinasiProvider>(
-                builder: (context, provider, _) {
-                  final contoh = provider.daftarDestinasi.first;
-                  return DestinasiCard(
-                    destinasi: contoh,
-                    onTap: () {},
-                    onFavoriteTap: () => provider.toggleFavorit(contoh.id),
-                  );
-                },
-              ),
-            ),
-          ),
-        ),
+        initialRoute: AppRoutes.login,
+        routes: {
+          AppRoutes.login: (_) => const LoginPage(),
+          AppRoutes.register: (_) => const RegisterPage(),
+          AppRoutes.home: (_) => const BottomNavShell(),
+          AppRoutes.rencanaList: (_) => const DaftarRencanaScreen(),
+          AppRoutes.rencanaTambah: (_) => const TambahRencanaScreen(),
+        },
+        onGenerateRoute: AppRoutes.onGenerateRoute,
       ),
     );
   }

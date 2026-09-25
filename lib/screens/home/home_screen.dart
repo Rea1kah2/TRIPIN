@@ -4,10 +4,6 @@ import '../../widgets/destination_card.dart';
 import '../../widgets/nearby_card.dart';
 import '../auth/login_screen.dart';
 
-// ======================================================
-// HOME PAGE / BERANDA
-// ======================================================
-
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
 
@@ -109,7 +105,6 @@ class _HomePageState extends State<HomePage> {
             tooltip: 'Logout',
           ),
 
-          // icon profil yang sebelumnya
           Padding(
             padding: const EdgeInsets.only(right: 18),
             child: CircleAvatar(
@@ -131,9 +126,6 @@ class _HomePageState extends State<HomePage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // ==================================================
-            // SEARCH
-            // ==================================================
 
             Container(
               decoration: BoxDecoration(
@@ -174,10 +166,6 @@ class _HomePageState extends State<HomePage> {
             ),
 
             const SizedBox(height: 25),
-
-            // ==================================================
-            // BANNER
-            // ==================================================
 
             Container(
               height: 190,
@@ -231,10 +219,6 @@ class _HomePageState extends State<HomePage> {
             ),
 
             const SizedBox(height: 28),
-
-            // ==================================================
-            // AI CARD
-            // ==================================================
 
             Container(
               padding: const EdgeInsets.all(18),
@@ -294,10 +278,6 @@ class _HomePageState extends State<HomePage> {
 
             const SizedBox(height: 28),
 
-            // ==================================================
-            // CATEGORY
-            // ==================================================
-
             const Text(
               'Kategori Wisata',
               style: TextStyle(
@@ -338,10 +318,6 @@ class _HomePageState extends State<HomePage> {
             ),
 
             const SizedBox(height: 28),
-
-            // ==================================================
-            // RECOMMENDATION
-            // ==================================================
 
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -466,38 +442,6 @@ class _HomePageState extends State<HomePage> {
             ),
           ],
         ),
-      ),
-
-      // ==================================================
-      // BOTTOM NAVIGATION
-      // ==================================================
-
-      bottomNavigationBar: NavigationBar(
-        selectedIndex: 0,
-        backgroundColor: Colors.white,
-        indicatorColor: const Color(0xFFE1F1EC),
-        destinations: const [
-          NavigationDestination(
-            icon: Icon(Icons.home_outlined),
-            selectedIcon: Icon(Icons.home),
-            label: 'Beranda',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.explore_outlined),
-            selectedIcon: Icon(Icons.explore),
-            label: 'Jelajah',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.favorite_border),
-            selectedIcon: Icon(Icons.favorite),
-            label: 'Favorit',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.person_outline),
-            selectedIcon: Icon(Icons.person),
-            label: 'Profil',
-          ),
-        ],
       ),
     );
   }
