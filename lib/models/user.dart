@@ -10,4 +10,18 @@ class User {
     required this.email,
     required this.password,
   });
+
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'nama': nama,
+        'email': email,
+        'password': password,
+      };
+
+  factory User.fromJson(Map<String, dynamic> json) => User(
+        id: json['id'] as String,
+        nama: json['nama'] as String,
+        email: json['email'] as String,
+        password: json['password'] as String,
+      );
 }

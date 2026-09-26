@@ -31,4 +31,22 @@ class RencanaPerjalanan {
       catatan: catatan ?? this.catatan,
     );
   }
+
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'judul': judul,
+        'tanggalMulai': tanggalMulai.toIso8601String(),
+        'tanggalSelesai': tanggalSelesai.toIso8601String(),
+        'daftarDestinasiId': daftarDestinasiId,
+        'catatan': catatan,
+      };
+
+  factory RencanaPerjalanan.fromJson(Map<String, dynamic> json) => RencanaPerjalanan(
+        id: json['id'] as String,
+        judul: json['judul'] as String,
+        tanggalMulai: DateTime.parse(json['tanggalMulai'] as String),
+        tanggalSelesai: DateTime.parse(json['tanggalSelesai'] as String),
+        daftarDestinasiId: List<String>.from(json['daftarDestinasiId'] as List),
+        catatan: json['catatan'] as String? ?? '',
+      );
 }

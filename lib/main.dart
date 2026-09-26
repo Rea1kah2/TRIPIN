@@ -4,6 +4,7 @@ import 'providers/auth_provider.dart';
 import 'providers/destinasi_provider.dart';
 import 'providers/rencana_provider.dart';
 import 'routes/app_routes.dart';
+import 'screens/app_gate.dart';
 import 'screens/auth/login_screen.dart';
 import 'screens/auth/register_screen.dart';
 import 'screens/rencana/daftar_rencana_screen.dart';
@@ -23,15 +24,15 @@ class TripinApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
-        ChangeNotifierProvider(create: (_) => AuthProvider()),
-        ChangeNotifierProvider(create: (_) => DestinasiProvider()),
-        ChangeNotifierProvider(create: (_) => RencanaProvider()),
+        ChangeNotifierProvider(create: (_) => AuthProvider()..muatData()),
+        ChangeNotifierProvider(create: (_) => DestinasiProvider()..muatData()),
+        ChangeNotifierProvider(create: (_) => RencanaProvider()..muatData()),
       ],
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
         title: 'TRIPIN',
         theme: buildAppTheme(),
-        initialRoute: AppRoutes.login,
+        home: const AppGate(),
         routes: {
           AppRoutes.login: (_) => const LoginPage(),
           AppRoutes.register: (_) => const RegisterPage(),
