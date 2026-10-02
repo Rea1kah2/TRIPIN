@@ -23,10 +23,13 @@ class DestinasiCard extends StatelessWidget {
   });
 
   String _labelKategori(BuildContext context) {
-    final daftarKategori = context.watch<DestinasiProvider>().daftarKategori;
+    final daftarKategori =
+        context.watch<DestinasiProvider>().daftarKategori;
+
     for (final k in daftarKategori) {
       if (k.id == destinasi.kategoriId) return k.nama;
     }
+
     return '';
   }
 
@@ -39,7 +42,9 @@ class DestinasiCard extends StatelessWidget {
       child: GlassCard(
         padding: EdgeInsets.zero,
         radius: 20,
-        child: dense ? _buildDense(labelKategori) : _buildFull(labelKategori),
+        child: dense
+            ? _buildDense(labelKategori)
+            : _buildFull(labelKategori),
       ),
     );
   }
@@ -53,7 +58,9 @@ class DestinasiCard extends StatelessWidget {
           Stack(
             children: [
               ClipRRect(
-                borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+                borderRadius: const BorderRadius.vertical(
+                  top: Radius.circular(20),
+                ),
                 child: SafeNetworkImage(
                   url: destinasi.imageUrl,
                   width: double.infinity,
@@ -69,12 +76,16 @@ class DestinasiCard extends StatelessWidget {
                     width: 36,
                     height: 36,
                     decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.9),
+                      color: Colors.white.withValues(alpha: 0.9),
                       shape: BoxShape.circle,
                     ),
                     child: Icon(
-                      destinasi.isFavorit ? Icons.favorite : Icons.favorite_border,
-                      color: destinasi.isFavorit ? AppColors.favoriteActive : Colors.grey,
+                      destinasi.isFavorit
+                          ? Icons.favorite
+                          : Icons.favorite_border,
+                      color: destinasi.isFavorit
+                          ? AppColors.favoriteActive
+                          : Colors.grey,
                       size: 20,
                     ),
                   ),
@@ -87,21 +98,38 @@ class DestinasiCard extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(destinasi.name, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                Text(
+                  destinasi.name,
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
                 const SizedBox(height: 4),
                 Text(
                   labelKategori,
-                  style: const TextStyle(color: AppColors.primary, fontSize: 11, fontWeight: FontWeight.w600),
+                  style: const TextStyle(
+                    color: AppColors.primary,
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
                 const SizedBox(height: 6),
                 Row(
                   children: [
-                    const Icon(Icons.location_on_outlined, size: 15, color: Colors.grey),
+                    const Icon(
+                      Icons.location_on_outlined,
+                      size: 15,
+                      color: Colors.grey,
+                    ),
                     const SizedBox(width: 3),
                     Expanded(
                       child: Text(
                         destinasi.location,
-                        style: const TextStyle(color: Colors.grey, fontSize: 11),
+                        style: const TextStyle(
+                          color: Colors.grey,
+                          fontSize: 11,
+                        ),
                         overflow: TextOverflow.ellipsis,
                       ),
                     ),
@@ -111,10 +139,17 @@ class DestinasiCard extends StatelessWidget {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    RatingStars(rating: destinasi.rating, size: 15),
+                    RatingStars(
+                      rating: destinasi.rating,
+                      size: 15,
+                    ),
                     Text(
                       formatRupiah(destinasi.price),
-                      style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold, fontSize: 12),
+                      style: const TextStyle(
+                        color: AppColors.primary,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 12,
+                      ),
                     ),
                   ],
                 ),
@@ -135,7 +170,11 @@ class DestinasiCard extends StatelessWidget {
           children: [
             ClipRRect(
               borderRadius: BorderRadius.circular(14),
-              child: SafeNetworkImage(url: destinasi.imageUrl, width: 90, height: 85),
+              child: SafeNetworkImage(
+                url: destinasi.imageUrl,
+                width: 90,
+                height: 85,
+              ),
             ),
             const SizedBox(width: 13),
             Expanded(
@@ -143,15 +182,29 @@ class DestinasiCard extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Text(destinasi.name, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold)),
+                  Text(
+                    destinasi.name,
+                    style: const TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
                   const SizedBox(height: 6),
                   Row(
                     children: [
-                      const Icon(Icons.near_me_outlined, size: 14, color: AppColors.primary),
+                      const Icon(
+                        Icons.near_me_outlined,
+                        size: 14,
+                        color: AppColors.primary,
+                      ),
                       const SizedBox(width: 3),
                       Text(
                         '${destinasi.distanceKm.toStringAsFixed(1)} km dari kamu',
-                        style: const TextStyle(color: AppColors.primary, fontSize: 11, fontWeight: FontWeight.w500),
+                        style: const TextStyle(
+                          color: AppColors.primary,
+                          fontSize: 11,
+                          fontWeight: FontWeight.w500,
+                        ),
                       ),
                     ],
                   ),
@@ -161,8 +214,12 @@ class DestinasiCard extends StatelessWidget {
             GestureDetector(
               onTap: onFavoriteTap,
               child: Icon(
-                destinasi.isFavorit ? Icons.favorite : Icons.favorite_border,
-                color: destinasi.isFavorit ? AppColors.favoriteActive : Colors.grey,
+                destinasi.isFavorit
+                    ? Icons.favorite
+                    : Icons.favorite_border,
+                color: destinasi.isFavorit
+                    ? AppColors.favoriteActive
+                    : Colors.grey,
                 size: 20,
               ),
             ),

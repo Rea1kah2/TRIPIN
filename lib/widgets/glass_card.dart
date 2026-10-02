@@ -23,9 +23,15 @@ class GlassCard extends StatelessWidget {
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [AppColors.glassFillStart, AppColors.glassFillEnd],
+          colors: [
+            AppColors.glassFillStart,
+            AppColors.glassFillEnd,
+          ],
         ),
-        border: Border.all(color: AppColors.glassBorder, width: 1),
+        border: Border.all(
+          color: AppColors.glassBorder,
+          width: 1,
+        ),
       ),
       child: Stack(
         children: [
@@ -38,15 +44,18 @@ class GlassCard extends StatelessWidget {
               decoration: BoxDecoration(
                 gradient: LinearGradient(
                   colors: [
-                    Colors.white.withOpacity(0.0),
-                    Colors.white.withOpacity(0.5),
-                    Colors.white.withOpacity(0.0),
+                    Colors.white.withValues(alpha: 0.0),
+                    Colors.white.withValues(alpha: 0.5),
+                    Colors.white.withValues(alpha: 0.0),
                   ],
                 ),
               ),
             ),
           ),
-          Padding(padding: padding, child: child),
+          Padding(
+            padding: padding,
+            child: child,
+          ),
         ],
       ),
     );
@@ -66,7 +75,10 @@ class GlassCard extends StatelessWidget {
         child: ClipRRect(
           borderRadius: BorderRadius.circular(radius),
           child: BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: blurSigma, sigmaY: blurSigma),
+            filter: ImageFilter.blur(
+              sigmaX: blurSigma,
+              sigmaY: blurSigma,
+            ),
             child: isiKaca,
           ),
         ),
