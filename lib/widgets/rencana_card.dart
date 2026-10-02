@@ -18,6 +18,8 @@ class RencanaCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final textSecondary = context.tripin.textSecondary;
+
     return GestureDetector(
       onTap: onTap,
       child: GlassCard(
@@ -33,21 +35,20 @@ class RencanaCard extends StatelessWidget {
                   const SizedBox(height: 6),
                   Text(
                     '${formatTanggal(rencana.tanggalMulai)} - ${formatTanggal(rencana.tanggalSelesai)}',
-                    style: const TextStyle(
-                        color: AppColors.textSecondary, fontSize: 12),
+                    style: TextStyle(color: textSecondary, fontSize: 12),
                   ),
                   const SizedBox(height: 4),
                   Text(
                     '$jumlahDestinasi destinasi',
-                    style: const TextStyle(
-                        color: AppColors.primary,
+                    style: TextStyle(
+                        color: context.colors.primary,
                         fontSize: 12,
                         fontWeight: FontWeight.w600),
                   ),
                 ],
               ),
             ),
-            const Icon(Icons.arrow_forward_ios, size: 15, color: Colors.grey),
+            Icon(Icons.arrow_forward_ios, size: 15, color: textSecondary),
           ],
         ),
       ),

@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../../providers/destinasi_provider.dart';
 import '../../routes/app_routes.dart';
 import '../../widgets/destinasi_card.dart';
+import '../../theme/app_colors.dart';
 
 class FavoritScreen extends StatelessWidget {
   const FavoritScreen({super.key});
@@ -15,13 +16,13 @@ class FavoritScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(title: const Text('Favorit')),
       body: daftar.isEmpty
-          ? const Center(
+          ? Center(
               child: Padding(
-                padding: EdgeInsets.symmetric(horizontal: 32),
+                padding: const EdgeInsets.symmetric(horizontal: 32),
                 child: Text(
                   'Belum ada destinasi favorit.\nTap ikon hati di kartu untuk menambahkan.',
                   textAlign: TextAlign.center,
-                  style: TextStyle(color: Colors.grey),
+                  style: TextStyle(color: context.tripin.textSecondary),
                 ),
               ),
             )

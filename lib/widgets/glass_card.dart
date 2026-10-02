@@ -18,14 +18,15 @@ class GlassCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final warna = context.tripin;
     final isiKaca = Container(
       decoration: BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [AppColors.glassFillStart, AppColors.glassFillEnd],
+          colors: [warna.glassFillStart, warna.glassFillEnd],
         ),
-        border: Border.all(color: AppColors.glassBorder, width: 1),
+        border: Border.all(color: warna.glassBorder, width: 1),
       ),
       child: Stack(
         children: [
@@ -38,9 +39,9 @@ class GlassCard extends StatelessWidget {
               decoration: BoxDecoration(
                 gradient: LinearGradient(
                   colors: [
-                    Colors.white.withOpacity(0.0),
-                    Colors.white.withOpacity(0.5),
-                    Colors.white.withOpacity(0.0),
+                    warna.glassHighlight.withOpacity(0.0),
+                    warna.glassHighlight,
+                    warna.glassHighlight.withOpacity(0.0),
                   ],
                 ),
               ),
@@ -57,7 +58,7 @@ class GlassCard extends StatelessWidget {
           borderRadius: BorderRadius.circular(radius),
           boxShadow: [
             BoxShadow(
-              color: AppColors.glassShadow,
+              color: warna.glassShadow,
               blurRadius: 16,
               offset: const Offset(0, 6),
             ),

@@ -1,4 +1,6 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Dibutuhkan untuk memuat gambar dan memanggil backend asisten (build release). -->
+    <uses-permission android:name="android.permission.INTERNET"/>
     <application
         android:label="tugas_kelompok"
         android:name="${applicationName}"

@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../models/chat_message.dart';
 import '../models/rencana_perjalanan.dart';
 import '../models/user.dart';
 
@@ -9,6 +10,40 @@ class LocalStorageService {
   static const _keyFavoritIds = 'tripin_favorit_ids';
   static const _keyRencana = 'tripin_rencana';
   static const _keyRencanaInitialized = 'tripin_rencana_initialized';
+  static const _keyThemeMode = 'tripin_theme_mode';
+
+  static String _keyChat(String userId) => 'tripin_chat_$userId';
+
+  Future<List<ChatMessage>> muatChat(String userId) async {
+    final prefs = await SharedPreferences.getInstance();
+    final raw = prefs.getString(_keyChat(userId));
+    if (raw == null) return [];
+    try {
+      return (jsonDecode(raw) as List)
+          .map((e) => ChatMessage.fromJson(e as Map<String, dynamic>))
+          .toList();
+    } catch (_) {
+      return []; // riwayat rusak: mulai baru, jangan crash
+    }
+  }
+
+  Future<void> simpanChat(String userId, List<ChatMessage> pesan) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(
+      _keyChat(userId),
+      jsonEncode(pesan.map((m) => m.toJson()).toList()),
+    );
+  }
+
+  Future<String?> muatThemeMode() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString(_keyThemeMode);
+  }
+
+  Future<void> simpanThemeMode(String mode) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_keyThemeMode, mode);
+  }
 
   Future<List<User>> muatUser() async {
     final prefs = await SharedPreferences.getInstance();

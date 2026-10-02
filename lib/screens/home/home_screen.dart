@@ -3,8 +3,10 @@ import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/destinasi_provider.dart';
 import '../../routes/app_routes.dart';
+import '../../theme/app_colors.dart';
 import '../../widgets/destinasi_card.dart';
 import '../../widgets/kategori_chip.dart';
+import '../../widgets/theme_toggle_button.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -46,21 +48,22 @@ class _HomePageState extends State<HomePage> {
         backgroundColor: Colors.transparent,
         elevation: 0,
         titleSpacing: 20,
-        title: const Column(
+        title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
               'Halo, Traveler 👋',
-              style: TextStyle(fontSize: 14, color: Colors.grey),
+              style: TextStyle(fontSize: 14, color: context.tripin.textSecondary),
             ),
-            SizedBox(height: 3),
-            Text(
+            const SizedBox(height: 3),
+            const Text(
               'Mau pergi ke mana?',
               style: TextStyle(fontSize: 19, fontWeight: FontWeight.bold),
             ),
           ],
         ),
         actions: [
+          const ThemeToggleButton(),
           IconButton(
             onPressed: () {
               showDialog(
@@ -72,17 +75,13 @@ class _HomePageState extends State<HomePage> {
                     actions: [
                       TextButton(
                         onPressed: () => Navigator.pop(context),
-                        child: const Text('Batal', style: TextStyle(color: Colors.grey)),
+                        child: Text('Batal', style: TextStyle(color: context.tripin.textSecondary)),
                       ),
                       ElevatedButton(
                         onPressed: () {
                           Navigator.pop(context);
                           _logout();
                         },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF2E7D6B),
-                          foregroundColor: Colors.white,
-                        ),
                         child: const Text('Logout'),
                       ),
                     ],
@@ -90,7 +89,7 @@ class _HomePageState extends State<HomePage> {
                 },
               );
             },
-            icon: const Icon(Icons.logout_outlined, color: Color(0xFF2E7D6B)),
+            icon: Icon(Icons.logout_outlined, color: context.colors.primary),
             tooltip: 'Logout',
           ),
         ],
@@ -103,28 +102,35 @@ class _HomePageState extends State<HomePage> {
             // SEARCH
             Container(
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: context.colors.surface,
                 borderRadius: BorderRadius.circular(17),
                 boxShadow: [
                   BoxShadow(
                     blurRadius: 12,
                     offset: const Offset(0, 4),
-                    color: Colors.black.withOpacity(0.05),
+                    color: context.tripin.softShadow,
                   ),
                 ],
               ),
               child: TextField(
                 controller: searchController,
                 onChanged: (_) => setState(() {}),
-                decoration: const InputDecoration(
+                decoration: InputDecoration(
                   hintText: 'Cari tempat wisata...',
-                  hintStyle: TextStyle(color: Colors.grey, fontSize: 14),
-                  prefixIcon: Icon(Icons.search, color: Color(0xFF2E7D6B)),
-                  border: OutlineInputBorder(
+                  prefixIcon: Icon(Icons.search, color: context.colors.primary),
+                  border: const OutlineInputBorder(
                     borderRadius: BorderRadius.all(Radius.circular(17)),
                     borderSide: BorderSide.none,
                   ),
-                  contentPadding: EdgeInsets.symmetric(vertical: 16),
+                  enabledBorder: const OutlineInputBorder(
+                    borderRadius: BorderRadius.all(Radius.circular(17)),
+                    borderSide: BorderSide.none,
+                  ),
+                  focusedBorder: const OutlineInputBorder(
+                    borderRadius: BorderRadius.all(Radius.circular(17)),
+                    borderSide: BorderSide.none,
+                  ),
+                  contentPadding: const EdgeInsets.symmetric(vertical: 16),
                 ),
               ),
             ),
@@ -176,11 +182,11 @@ class _HomePageState extends State<HomePage> {
 
             // DESTINASI CARD
             GestureDetector(
-              onTap: () => Navigator.pushNamed(context, AppRoutes.destinasiList),
+              onTap: () => Navigator.pushNamed(context, AppRoutes.chat),
               child: Container(
                 padding: const EdgeInsets.all(18),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFE8F4F0),
+                  color: context.tripin.softMint,
                   borderRadius: BorderRadius.circular(22),
                 ),
                 child: Row(
@@ -189,26 +195,26 @@ class _HomePageState extends State<HomePage> {
                       width: 55,
                       height: 55,
                       decoration: BoxDecoration(
-                        color: const Color(0xFF2E7D6B),
+                        color: context.colors.primary,
                         borderRadius: BorderRadius.circular(17),
                       ),
-                      child: const Icon(Icons.auto_awesome, color: Colors.white, size: 28),
+                      child: Icon(Icons.auto_awesome, color: context.colors.onPrimary, size: 28),
                     ),
                     const SizedBox(width: 14),
-                    const Expanded(
+                    Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text('Bingung mau ke mana?', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-                          SizedBox(height: 4),
+                          const Text('Bingung mau ke mana?', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                          const SizedBox(height: 4),
                           Text(
-                            'Jelajahi semua destinasi di TRIPIN.',
-                            style: TextStyle(color: Colors.grey, fontSize: 12),
+                            'Tanya Asisten TRIPIN, kami bantu pilihkan.',
+                            style: TextStyle(color: context.tripin.textSecondary, fontSize: 12),
                           ),
                         ],
                       ),
                     ),
-                    const Icon(Icons.arrow_forward_ios, size: 16, color: Color(0xFF2E7D6B)),
+                    Icon(Icons.arrow_forward_ios, size: 16, color: context.colors.primary),
                   ],
                 ),
               ),
@@ -226,16 +232,9 @@ class _HomePageState extends State<HomePage> {
                 children: [
                   Padding(
                     padding: const EdgeInsets.only(right: 8),
-                    child: ChoiceChip(
-                      label: const Text('Semua'),
+                    child: SemuaChip(
                       selected: selectedKategoriId == null,
-                      onSelected: (_) => setState(() => selectedKategoriId = null),
-                      showCheckmark: false,
-                      selectedColor: const Color(0xFF2E7D6B),
-                      labelStyle: TextStyle(
-                        color: selectedKategoriId == null ? Colors.white : const Color(0xFF2E7D6B),
-                        fontWeight: FontWeight.w600,
-                      ),
+                      onTap: () => setState(() => selectedKategoriId = null),
                     ),
                   ),
                   for (final kategori in provider.daftarKategori)
@@ -260,7 +259,7 @@ class _HomePageState extends State<HomePage> {
                 const Text('Rekomendasi Untukmu', style: TextStyle(fontSize: 19, fontWeight: FontWeight.bold)),
                 TextButton(
                   onPressed: () => Navigator.pushNamed(context, AppRoutes.destinasiList),
-                  child: const Text('Lihat Semua', style: TextStyle(color: Color(0xFF2E7D6B))),
+                  child: const Text('Lihat Semua'),
                 ),
               ],
             ),
@@ -268,9 +267,9 @@ class _HomePageState extends State<HomePage> {
             const SizedBox(height: 10),
 
             if (hasilPencarian.isEmpty)
-              const Padding(
-                padding: EdgeInsets.symmetric(vertical: 20),
-                child: Text('Tidak ada destinasi yang cocok.', style: TextStyle(color: Colors.grey)),
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 20),
+                child: Text('Tidak ada destinasi yang cocok.', style: TextStyle(color: context.tripin.textSecondary)),
               )
             else
               SizedBox(
@@ -295,9 +294,9 @@ class _HomePageState extends State<HomePage> {
             // NEARBY
             const Text('Wisata di Sekitar Kamu 📍', style: TextStyle(fontSize: 19, fontWeight: FontWeight.bold)),
             const SizedBox(height: 6),
-            const Text(
+            Text(
               'Temukan tempat menarik yang dekat dengan lokasimu.',
-              style: TextStyle(color: Colors.grey, fontSize: 12),
+              style: TextStyle(color: context.tripin.textSecondary, fontSize: 12),
             ),
             const SizedBox(height: 15),
 

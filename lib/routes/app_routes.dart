@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../screens/chat/chat_screen.dart';
 import '../screens/destinasi/detail_destinasi_screen.dart';
 import '../screens/rencana/detail_rencana_screen.dart';
 
@@ -13,6 +14,7 @@ class AppRoutes {
   static const rencanaTambah = '/rencana/tambah';
   static const rencanaDetail = '/rencana/detail';
   static const destinasiDetail = '/destinasi/detail';
+  static const chat = '/chat';
 
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
     switch (settings.name) {
@@ -25,6 +27,12 @@ class AppRoutes {
         final id = settings.arguments as String;
         return MaterialPageRoute(
           builder: (_) => DetailRencanaScreen(rencanaId: id),
+        );
+      case chat:
+        // arguments (opsional): prompt awal yang langsung dikirim ke asisten.
+        final prompt = settings.arguments as String?;
+        return MaterialPageRoute(
+          builder: (_) => ChatScreen(promptAwal: prompt),
         );
       default:
         return MaterialPageRoute(

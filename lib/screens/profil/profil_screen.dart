@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
+import '../../providers/theme_provider.dart';
 import '../../routes/app_routes.dart';
+import '../../theme/app_colors.dart';
+import '../../widgets/theme_toggle_button.dart';
 
 class ProfilScreen extends StatelessWidget {
   const ProfilScreen({super.key});
@@ -9,6 +12,8 @@ class ProfilScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final user = context.watch<AuthProvider>().currentUser;
+    final primary = context.colors.primary;
+    final tripin = context.tripin;
 
     return Scaffold(
       appBar: AppBar(title: const Text('Profil')),
@@ -18,13 +23,13 @@ class ProfilScreen extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: context.colors.surface,
               borderRadius: BorderRadius.circular(20),
               boxShadow: [
                 BoxShadow(
                   blurRadius: 12,
                   offset: const Offset(0, 4),
-                  color: Colors.black.withOpacity(0.05),
+                  color: tripin.softShadow,
                 ),
               ],
             ),
@@ -34,10 +39,10 @@ class ProfilScreen extends StatelessWidget {
                   width: 64,
                   height: 64,
                   decoration: BoxDecoration(
-                    color: const Color(0xFFE1F1EC),
+                    color: tripin.paleMint,
                     shape: BoxShape.circle,
                   ),
-                  child: const Icon(Icons.person, size: 36, color: Color(0xFF2E7D6B)),
+                  child: Icon(Icons.person, size: 36, color: primary),
                 ),
                 const SizedBox(width: 16),
                 Expanded(
@@ -51,7 +56,7 @@ class ProfilScreen extends StatelessWidget {
                       const SizedBox(height: 4),
                       Text(
                         user?.email ?? '-',
-                        style: const TextStyle(color: Colors.grey),
+                        style: TextStyle(color: tripin.textSecondary),
                       ),
                     ],
                   ),
@@ -60,6 +65,8 @@ class ProfilScreen extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 20),
+          const _TampilanTile(),
+          const SizedBox(height: 12),
           _MenuItem(
             icon: Icons.map_outlined,
             label: 'Rencana Perjalanan Saya',
@@ -80,18 +87,18 @@ class ProfilScreen extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: context.colors.surface,
               borderRadius: BorderRadius.circular(16),
             ),
-            child: const Column(
+            child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Tentang TRIPIN', style: TextStyle(fontWeight: FontWeight.bold)),
-                SizedBox(height: 6),
+                const Text('Tentang TRIPIN', style: TextStyle(fontWeight: FontWeight.bold)),
+                const SizedBox(height: 6),
                 Text(
                   'TRIPIN adalah aplikasi discovery & perencana wisata Sumatera Utara. '
                   'Dibangun sebagai tugas kelompok mata kuliah Pemrograman Mobile.',
-                  style: TextStyle(color: Colors.grey, height: 1.4),
+                  style: TextStyle(color: tripin.textSecondary, height: 1.4),
                 ),
               ],
             ),
@@ -105,9 +112,55 @@ class ProfilScreen extends StatelessWidget {
                 context.read<AuthProvider>().logout();
                 Navigator.pushNamedAndRemoveUntil(context, AppRoutes.login, (route) => false);
               },
-              icon: const Icon(Icons.logout, color: Colors.red),
-              label: const Text('Keluar', style: TextStyle(color: Colors.red)),
-              style: OutlinedButton.styleFrom(side: const BorderSide(color: Colors.red)),
+              icon: Icon(Icons.logout, color: context.colors.error),
+              label: Text('Keluar', style: TextStyle(color: context.colors.error)),
+              style: OutlinedButton.styleFrom(side: BorderSide(color: context.colors.error)),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Tile "Tampilan": switch terang/gelap + pilihan Sistem/Terang/Gelap.
+class _TampilanTile extends StatelessWidget {
+  const _TampilanTile();
+
+  @override
+  Widget build(BuildContext context) {
+    final mode = context.watch<ThemeProvider>().themeMode;
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: context.colors.surface,
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(Icons.palette_outlined, color: context.colors.primary),
+              const SizedBox(width: 12),
+              const Expanded(child: Text('Mode Gelap')),
+              const ThemeToggleButton(pill: true),
+            ],
+          ),
+          const SizedBox(height: 12),
+          SizedBox(
+            width: double.infinity,
+            child: SegmentedButton<ThemeMode>(
+              showSelectedIcon: false,
+              segments: const [
+                ButtonSegment(value: ThemeMode.system, label: Text('Sistem')),
+                ButtonSegment(value: ThemeMode.light, label: Text('Terang')),
+                ButtonSegment(value: ThemeMode.dark, label: Text('Gelap')),
+              ],
+              selected: {mode},
+              onSelectionChanged: (pilihan) =>
+                  context.read<ThemeProvider>().setThemeMode(pilihan.first),
             ),
           ),
         ],
@@ -131,15 +184,15 @@ class _MenuItem extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: context.colors.surface,
           borderRadius: BorderRadius.circular(16),
         ),
         child: Row(
           children: [
-            Icon(icon, color: const Color(0xFF2E7D6B)),
+            Icon(icon, color: context.colors.primary),
             const SizedBox(width: 12),
             Expanded(child: Text(label)),
-            const Icon(Icons.arrow_forward_ios, size: 14, color: Colors.grey),
+            Icon(Icons.arrow_forward_ios, size: 14, color: context.tripin.textSecondary),
           ],
         ),
       ),
