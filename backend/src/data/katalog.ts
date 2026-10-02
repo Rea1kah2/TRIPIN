@@ -8,8 +8,15 @@ export interface Destinasi {
   kategoriId: string;
   rating: number;
   hargaTiket: number; // rupiah, 0 = gratis
-  jarakKm: number;
+  lat: number;
+  lng: number;
   deskripsi: string;
+}
+
+/** Posisi pengguna (WGS84). Hanya ada bila pengguna mengizinkan lokasi. */
+export interface Posisi {
+  lat: number;
+  lng: number;
 }
 
 export interface Kategori {
@@ -32,6 +39,15 @@ export interface FilterDestinasi {
   limit?: number;
 }
 
+/** Jarak lingkaran besar (Haversine) dari posisi ke destinasi, dalam km. */
+export function jarakKm(p: Posisi, d: Pick<Destinasi, 'lat' | 'lng'>): number {
+  const rad = (x: number) => (x * Math.PI) / 180;
+  const dLat = rad(d.lat - p.lat);
+  const dLng = rad(d.lng - p.lng);
+  const a = Math.sin(dLat / 2) ** 2 + Math.cos(rad(p.lat)) * Math.cos(rad(d.lat)) * Math.sin(dLng / 2) ** 2;
+  return 2 * 6371.0088 * Math.asin(Math.min(1, Math.sqrt(a)));
+}
+
 export function getById(id: string): Destinasi | undefined {
   return daftarDestinasi.find((d) => d.id === id);
 }
@@ -47,7 +63,7 @@ function cocokKategori(d: Destinasi, kategori: string): boolean {
   );
 }
 
-export function cari(filter: FilterDestinasi = {}): Destinasi[] {
+export function cari(filter: FilterDestinasi = {}, posisi?: Posisi): Destinasi[] {
   const limit = Math.min(Math.max(filter.limit ?? 5, 1), 10);
   const lokasi = filter.lokasi?.trim().toLowerCase();
   const kata = filter.kataKunci?.trim().toLowerCase();
@@ -65,9 +81,10 @@ export function cari(filter: FilterDestinasi = {}): Destinasi[] {
     return true;
   });
 
-  const urut = filter.urut ?? 'rating';
+  // 'terdekat' butuh posisi pengguna; tanpa itu, urutkan menurut rating (bukan jarak karangan).
+  const urut = filter.urut === 'terdekat' && !posisi ? 'rating' : (filter.urut ?? 'rating');
   hasil.sort((a, b) => {
-    if (urut === 'terdekat') return a.jarakKm - b.jarakKm;
+    if (urut === 'terdekat' && posisi) return jarakKm(posisi, a) - jarakKm(posisi, b);
     if (urut === 'termurah') return a.hargaTiket - b.hargaTiket || b.rating - a.rating;
     return b.rating - a.rating;
   });
@@ -76,7 +93,7 @@ export function cari(filter: FilterDestinasi = {}): Destinasi[] {
 }
 
 /** Bentuk ringkas yang dikirim ke model (tanpa URL gambar). */
-export function untukModel(d: Destinasi) {
+export function untukModel(d: Destinasi, posisi?: Posisi) {
   return {
     id: d.id,
     nama: d.nama,
@@ -84,7 +101,8 @@ export function untukModel(d: Destinasi) {
     kategori: namaKategori(d.kategoriId),
     rating: d.rating,
     hargaTiketRupiah: d.hargaTiket,
-    jarakDariPenggunaKm: d.jarakKm,
+    // Jarak hanya disertakan bila posisi pengguna diketahui; tidak pernah dikarang.
+    ...(posisi ? { jarakDariPenggunaKm: Math.round(jarakKm(posisi, d) * 10) / 10 } : {}),
     deskripsi: d.deskripsi,
   };
 }

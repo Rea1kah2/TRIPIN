@@ -10,6 +10,7 @@ export interface PesanMasuk {
 
 export type EventSse =
   | { type: 'delta'; text: string }
+  | { type: 'status'; text: string }
   | EventKlien
   | { type: 'done' }
   | { type: 'error'; message: string };
@@ -59,7 +60,17 @@ const NUDGE_RENCANA =
   'jumlahHari sesuai jawabanmu, dan destinasiIds (id dari hasil pencarian) sesuai urutan kunjungan. ' +
   'Jangan menulis ulang jawabanmu.';
 
-const PESAN_ERROR = 'Asisten sedang bermasalah. Coba lagi nanti ya.';
+/** Status singkat yang ditampilkan app saat Tripy bekerja (bukan bagian jawaban). */
+const STATUS_TOOL: Record<string, string> = {
+  cari_destinasi: 'Tripy lagi nyari tempat…',
+  detail_destinasi: 'Ngecek detail tempatnya…',
+  usulkan_rencana: 'Nyusun rencana…',
+};
+const STATUS_TOOL_LAIN = 'Memproses…';
+const STATUS_JAWAB = 'Nyusun jawaban…';
+const STATUS_ANTRE = 'Tripy lagi antre, nyoba lagi…';
+
+const PESAN_ERROR = 'Tripy lagi bermasalah. Coba lagi nanti ya.';
 const PESAN_BLOKIR = 'Maaf, aku tidak bisa menjawab permintaan itu. Coba tanyakan hal lain seputar wisata Sumatera Utara.';
 const PESAN_KOSONG = 'Maaf, aku belum bisa menjawab itu. Coba ulangi dengan kalimat lain.';
 
@@ -113,8 +124,8 @@ function modelAwal(chain: (string | undefined)[]): number {
 export function pesanSibuk(err: unknown): string {
   const tunda = tundaDariError(err);
   return tunda
-    ? `Asisten sedang sibuk (batas penggunaan tercapai). Coba lagi dalam ${Math.ceil(tunda / 1000)} detik.`
-    : 'Asisten sedang sibuk (batas penggunaan tercapai). Coba lagi sebentar ya.';
+    ? `Tripy lagi sibuk (batas penggunaan tercapai). Coba lagi dalam ${Math.ceil(tunda / 1000)} detik.`
+    : 'Tripy lagi sibuk (batas penggunaan tercapai). Coba lagi sebentar ya.';
 }
 
 export async function jalankanChat(opsi: OpsiChat): Promise<void> {
@@ -137,6 +148,7 @@ export async function jalankanChat(opsi: OpsiChat): Promise<void> {
 
   try {
     for (let putaran = 0; putaran < MAKS_PUTARAN; putaran++) {
+      if (putaran > 0) emit({ type: 'status', text: STATUS_JAWAB });
       const partsModel: Part[] = [];
       let blokir: string | undefined;
       let ulangDariAwal = false;
@@ -182,6 +194,7 @@ export async function jalankanChat(opsi: OpsiChat): Promise<void> {
           if (menyerah && adaCadangan && (putaran === 0 || !adaTeks)) {
             opsi.log?.(`Model ${chain[idxModel] ?? '(default)'} gagal, beralih ke ${chain[idxModel + 1]}`, err);
             idxModel++;
+            emit({ type: 'status', text: STATUS_ANTRE });
             if (putaran === 0) {
               percobaan = 0; // percobaan baru untuk model baru
               continue;
@@ -191,6 +204,7 @@ export async function jalankanChat(opsi: OpsiChat): Promise<void> {
           }
           if (menyerah) throw err;
           sisaTunggu -= tundaEfektif;
+          emit({ type: 'status', text: STATUS_ANTRE });
           await tidur(tundaEfektif);
         }
       }
@@ -227,7 +241,8 @@ export async function jalankanChat(opsi: OpsiChat): Promise<void> {
 
       let adaGalatTool = false;
       const responsParts: Part[] = panggilan.map((fc) => {
-        const hasil = jalankanTool(fc.name ?? '', fc.args, { hariIni: opsi.konteks.hariIni });
+        emit({ type: 'status', text: STATUS_TOOL[fc.name ?? ''] ?? STATUS_TOOL_LAIN });
+        const hasil = jalankanTool(fc.name ?? '', fc.args, { hariIni: opsi.konteks.hariIni, posisi: opsi.konteks.posisi });
         if (hasil.output.error !== undefined) adaGalatTool = true;
         for (const e of hasil.events) {
           if (e.type === 'rencana') adaRencana = true;

@@ -1,6 +1,6 @@
 # TRIPIN Backend (chatbot AI)
 
-Backend kecil untuk Asisten TRIPIN: Fastify + TypeScript, memanggil Gemini (free tier)
+Backend kecil untuk Tripy (asisten AI TRIPIN): Fastify + TypeScript, memanggil Gemini (free tier)
 dengan function calling ke katalog destinasi, dan menyiarkan jawaban lewat SSE.
 
 ## Menjalankan
@@ -22,16 +22,25 @@ curl -N -X POST localhost:3000/api/chat -H 'content-type: application/json' \
 
 ## Menyambungkan app Flutter
 
+Terminal 1: `cd backend && npm run dev`. Terminal 2 (root repo, HP dicolok USB dengan USB debugging aktif):
+
 ```bash
-cd TRIPIN        # root repo (folder yang berisi pubspec.yaml)
-flutter run --dart-define=API_BASE_URL=http://<alamat-backend>:3000
+./scripts/run_android.sh
 ```
 
-| Perangkat            | API_BASE_URL                                   |
-|----------------------|------------------------------------------------|
-| Emulator Android     | `http://10.0.2.2:3000` (default, tak perlu diisi) |
-| iOS Simulator/macOS  | `http://localhost:3000` (default)              |
-| HP asli              | `http://<IP LAN laptop>:3000` (satu Wi-Fi)     |
+Skrip memasang `adb reverse tcp:3000 tcp:3000` lalu `flutter run`, sehingga `http://localhost:3000`
+di HP/emulator menunjuk ke backend di laptop (tidak peduli IP Wi-Fi berubah). Ulangi skrip setiap
+HP dicabut-colok, karena `adb reverse` hilang saat koneksi USB putus.
+
+| Cara                       | Perintah                                                          |
+|----------------------------|-------------------------------------------------------------------|
+| HP asli/emulator via USB   | `./scripts/run_android.sh` (default `http://localhost:3000`)      |
+| HP asli via Wi-Fi          | `flutter run --dart-define=API_BASE_URL=http://<IP LAN laptop>:3000` |
+| iOS Simulator/macOS/Chrome | `flutter run` (default `http://localhost:3000`)                   |
+
+Pesan "Tidak bisa terhubung ke asisten" hampir selalu berarti: backend belum jalan, `adb reverse`
+belum dipasang (atau hilang), atau HP dan laptop beda jaringan Wi-Fi (cek firewall macOS untuk Node).
+Log `ChatService: gagal menghubungi ...` di konsol `flutter run` menampilkan alamat yang dicoba.
 
 Jika `APP_KEY` diisi di `.env`, jalankan app dengan `--dart-define=APP_KEY=<nilai yang sama>`.
 
@@ -50,11 +59,12 @@ Jika `APP_KEY` diisi di `.env`, jalankan app dengan `--dart-define=APP_KEY=<nila
 
 `POST /api/chat` -> `text/event-stream`, satu JSON per event `data:`:
 `delta` (potongan teks), `destinasi` (id kartu), `rencana` (draf rencana), `done`, `error`.
-Detail body/konteks ada di `src/routes/chat.ts`.
+Detail body/konteks ada di `src/routes/chat.ts`. `konteks.posisi` (`lat`, `lng`) bersifat opsional dan hanya
+dikirim app bila pengguna mengizinkan lokasi (dibulatkan kasar, sekitar 1 km); tanpa itu jarak tidak tersedia.
 
 ## Data
 
-`src/data/destinasi.json` disalin dari `TRIPIN/lib/data/dummy_destinasi.dart`. Jika katalog di app
+`src/data/destinasi.json` (32 destinasi, lengkap dengan `lat`/`lng`) disalin dari `TRIPIN/lib/data/dummy_destinasi.dart`. Jika katalog di app
 berubah, perbarui juga file ini (rencana lanjutan: app mengambil katalog dari backend).
 
 ## Privasi

@@ -21,6 +21,8 @@ const bodySchema = z.object({
     .object({
       hariIni: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
       favoritIds: z.array(z.string().max(20)).max(60).default([]),
+      // Posisi kasar pengguna (app membulatkan 2 desimal). Opsional: hanya bila lokasi diizinkan.
+      posisi: z.object({ lat: z.number().min(-90).max(90), lng: z.number().min(-180).max(180) }).optional(),
       rencana: z
         .array(
           z.object({
@@ -64,7 +66,7 @@ export function registerChatRoute(
         }
       }
       if (!llm) {
-        return reply.code(503).send({ error: 'Asisten belum dikonfigurasi di server (GEMINI_API_KEY kosong).' });
+        return reply.code(503).send({ error: 'Tripy belum dikonfigurasi di server (GEMINI_API_KEY kosong).' });
       }
 
       const parsed = bodySchema.safeParse(req.body);
@@ -82,6 +84,7 @@ export function registerChatRoute(
       const konteks = {
         hariIni: parsed.data.konteks?.hariIni ?? hariIniWib(),
         favoritIds: parsed.data.konteks?.favoritIds ?? [],
+        posisi: parsed.data.konteks?.posisi,
         rencana: parsed.data.konteks?.rencana ?? [],
       };
 
