@@ -7,13 +7,40 @@ const pesan = [{ role: 'user' as const, text: 'halo' }];
 
 async function jalan(llm: ReturnType<typeof fakeLlm>, extra: Partial<Parameters<typeof jalankanChat>[0]> = {}) {
   const events: EventSse[] = [];
+  const statuses: string[] = []; // event 'status' dipisah agar asersi urutan event lain tetap ringkas
   const tidur = vi.fn(async (_ms: number) => {});
-  await jalankanChat({ llm, pesan, konteks, emit: (e) => events.push(e), tidur, ...extra });
-  return { events, tidur };
+  await jalankanChat({
+    llm,
+    pesan,
+    konteks,
+    emit: (e) => (e.type === 'status' ? statuses.push(e.text) : events.push(e)),
+    tidur,
+    ...extra,
+  });
+  return { events, statuses, tidur };
 }
 
 describe('jalankanChat', () => {
   beforeEach(() => resetKuotaModel());
+
+  it('mengirim status Tripy saat tool berjalan dan saat menyusun jawaban', async () => {
+    const llm = fakeLlm(
+      [panggil('cari_destinasi', { kategori: 'Pantai', lokasi: 'Serdang Bedagai' }, 'a')],
+      [teks('Ini pilihan pantai.')],
+    );
+    const { statuses } = await jalan(llm);
+    expect(statuses).toEqual(['Tripy lagi nyari tempat…', 'Nyusun jawaban…']);
+  });
+
+  it('mengirim status antre sebelum mengulang karena limit', async () => {
+    const { statuses } = await jalan(fakeLlm(errorStatus(429), [teks('berhasil')]));
+    expect(statuses).toEqual(['Tripy lagi antre, nyoba lagi…']);
+  });
+
+  it('tanpa tool tidak ada status (indikator awal dibuat di app)', async () => {
+    const { statuses } = await jalan(fakeLlm([teks('Halo')]));
+    expect(statuses).toEqual([]);
+  });
 
   it('menyiarkan teks bertahap lalu done', async () => {
     const { events } = await jalan(fakeLlm([teks('Halo '), teks('Traveler!')]));
@@ -28,14 +55,14 @@ describe('jalankanChat', () => {
     const llm = fakeLlm([teks('ok')]);
     await jalan(llm);
     const sp = llm.permintaan[0]!.systemInstruction;
-    expect(sp).toContain('Asisten TRIPIN');
+    expect(sp).toContain('Tripy');
     expect(sp).toContain('2026-10-02');
     expect(sp).toContain('Danau Toba'); // favorit dipetakan ke nama
   });
 
   it('loop function calling: tool dijalankan, hasil dikirim balik, kartu diteruskan', async () => {
     const llm = fakeLlm(
-      [panggil('cari_destinasi', { kategori: 'Pantai' }, 'a')],
+      [panggil('cari_destinasi', { kategori: 'Pantai', lokasi: 'Serdang Bedagai' }, 'a')],
       [teks('Ini pilihan pantai.')],
     );
     const { events } = await jalan(llm);
@@ -224,9 +251,9 @@ describe('jalankanChat', () => {
   it('limit panjang di tengah giliran sebelum ada teks -> giliran diulang dari awal di model berikutnya', async () => {
     const limit = Object.assign(new Error('Please retry in 46s'), { status: 429 });
     const llm = fakeLlm(
-      [panggil('cari_destinasi', { kategori: 'Pantai' })], // a, putaran 0
+      [panggil('cari_destinasi', { kategori: 'Pantai', lokasi: 'Serdang Bedagai' })], // a, putaran 0
       limit, //                                              a, putaran 1 -> habis
-      [panggil('cari_destinasi', { kategori: 'Pantai' })], // b, diulang dari awal
+      [panggil('cari_destinasi', { kategori: 'Pantai', lokasi: 'Serdang Bedagai' })], // b, diulang dari awal
       [teks('Pantai terbaik: Cermin.')],
     );
     const { events } = await jalan(llm, { modelChain: ['a', 'b'] });

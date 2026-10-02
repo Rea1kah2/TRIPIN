@@ -1,6 +1,6 @@
 import type { FunctionDeclaration } from '@google/genai';
 import { z } from 'zod';
-import { cari, daftarKategori, getById, untukModel } from '../data/katalog.js';
+import { cari, daftarKategori, getById, untukModel, type Posisi } from '../data/katalog.js';
 
 /** Event yang diteruskan ke app Flutter lewat SSE (selain teks). */
 export type EventKlien =
@@ -17,6 +17,7 @@ export interface DraftRencana {
 
 export interface KonteksTool {
   hariIni: string; // YYYY-MM-DD
+  posisi?: Posisi; // posisi pengguna bila lokasi diizinkan
 }
 
 export interface HasilTool {
@@ -51,7 +52,7 @@ export const deklarasiTool: FunctionDeclaration[] = [
         urut: {
           type: 'string',
           enum: ['rating', 'terdekat', 'termurah'],
-          description: 'Urutan hasil. Default rating tertinggi.',
+          description: 'Urutan hasil. Default rating tertinggi. "terdekat" hanya bekerja bila lokasi pengguna diketahui.',
         },
         limit: { type: 'integer', description: 'Jumlah hasil maksimum, 1-10. Default 5.' },
         tampilkan: {
@@ -141,20 +142,30 @@ export function jalankanTool(nama: string, args: unknown, konteks: KonteksTool):
       const p = cariArgs.safeParse(args ?? {});
       if (!p.success) return galat('Argumen cari_destinasi tidak valid.');
       const { tampilkan, ...filter } = p.data;
-      const ditemukan = cari(filter);
-      const hasil = ditemukan.map(untukModel);
+      const ditemukan = cari(filter, konteks.posisi);
+      const hasil = ditemukan.map((d) => untukModel(d, konteks.posisi));
+      const tanpaPosisi = filter.urut === 'terdekat' && !konteks.posisi;
       const events: EventKlien[] =
         tampilkan === false || ditemukan.length === 0
           ? []
           : [{ type: 'destinasi', ids: ditemukan.slice(0, MAKS_KARTU).map((d) => d.id) }];
-      return { output: { jumlah: hasil.length, hasil }, events };
+      return {
+        output: {
+          jumlah: hasil.length,
+          hasil,
+          ...(tanpaPosisi
+            ? { catatan: 'Lokasi pengguna belum diketahui sehingga jarak tidak tersedia; hasil diurutkan menurut rating.' }
+            : {}),
+        },
+        events,
+      };
     }
     case 'detail_destinasi': {
       const p = detailArgs.safeParse(args);
       if (!p.success) return galat('Argumen detail_destinasi tidak valid.');
       const d = getById(p.data.id);
       if (!d) return galat(`Destinasi dengan id "${p.data.id}" tidak ada di katalog.`);
-      return { output: { destinasi: untukModel(d) }, events: [] };
+      return { output: { destinasi: untukModel(d, konteks.posisi) }, events: [] };
     }
     case 'daftar_kategori':
       return { output: { kategori: daftarKategori.map((k) => k.nama) }, events: [] };

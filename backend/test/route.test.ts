@@ -14,14 +14,16 @@ function parseSse(payload: string) {
 }
 
 describe('POST /api/chat', () => {
-  it('menyiarkan SSE: delta, event destinasi, done', async () => {
+  it('menyiarkan SSE: status, delta, event destinasi, done', async () => {
     const llm = fakeLlm([panggil('cari_destinasi', { lokasi: 'berastagi', limit: 1 })], [teks('Coba Berastagi.')]);
     const app = await buatApp(cfg, llm);
     const res = await app.inject({ method: 'POST', url: '/api/chat', payload: body });
     expect(res.statusCode).toBe(200);
     expect(res.headers['content-type']).toContain('text/event-stream');
     expect(parseSse(res.payload)).toEqual([
+      { type: 'status', text: 'Tripy lagi nyari tempat…' },
       { type: 'destinasi', ids: ['d03'] },
+      { type: 'status', text: 'Nyusun jawaban…' },
       { type: 'delta', text: 'Coba Berastagi.' },
       { type: 'done' },
     ]);
@@ -68,5 +70,31 @@ describe('POST /api/chat', () => {
     const res = await kirim();
     expect(res.statusCode).toBe(429);
     expect(res.json().error).toMatch(/Terlalu banyak permintaan/);
+  });
+
+  it('menerima posisi pengguna yang valid dan menolak koordinat di luar rentang', async () => {
+    const llm = fakeLlm([teks('ok')], [teks('ok')]);
+    const app = await buatApp(cfg, llm);
+    const baik = await app.inject({
+      method: 'POST',
+      url: '/api/chat',
+      payload: { ...body, konteks: { posisi: { lat: 3.59, lng: 98.67 } } },
+    });
+    expect(baik.statusCode).toBe(200);
+    expect(llm.permintaan[0]!.systemInstruction).toContain('Lokasi pengguna: diketahui');
+
+    const buruk = await app.inject({
+      method: 'POST',
+      url: '/api/chat',
+      payload: { ...body, konteks: { posisi: { lat: 123, lng: 98.67 } } },
+    });
+    expect(buruk.statusCode).toBe(400);
+  });
+
+  it('tanpa posisi, prompt menyatakan lokasi tidak diketahui', async () => {
+    const llm = fakeLlm([teks('ok')]);
+    const app = await buatApp(cfg, llm);
+    await app.inject({ method: 'POST', url: '/api/chat', payload: body });
+    expect(llm.permintaan[0]!.systemInstruction).toContain('Lokasi pengguna: tidak diketahui');
   });
 });

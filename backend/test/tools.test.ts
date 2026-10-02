@@ -14,7 +14,7 @@ describe('tools', () => {
   });
 
   it('cari_destinasi mengembalikan bentuk ringkas tanpa gambar', () => {
-    const h = jalankanTool('cari_destinasi', { kategori: 'Pantai' }, ctx);
+    const h = jalankanTool('cari_destinasi', { kategori: 'Pantai', lokasi: 'Serdang Bedagai' }, ctx);
     expect(h.output.jumlah).toBe(2);
     expect(h.events).toEqual([{ type: 'destinasi', ids: ['d12', 'd17'] }]);
     const item = (h.output.hasil as Record<string, unknown>[])[0]!;
@@ -43,7 +43,7 @@ describe('tools', () => {
   });
 
   it('cari_destinasi tanpa hasil tidak memunculkan kartu kosong', () => {
-    const h = jalankanTool('cari_destinasi', { kategori: 'Pantai', hargaMaks: 0 }, ctx);
+    const h = jalankanTool('cari_destinasi', { kategori: 'Pantai', lokasi: 'Karo' }, ctx);
     expect(h.output.jumlah).toBe(0);
     expect(h.events).toEqual([]);
   });
@@ -78,5 +78,18 @@ describe('tools', () => {
 
   it('tool tidak dikenal -> error, tidak melempar', () => {
     expect(jalankanTool('hapus_semua', {}, ctx).output.error).toMatch(/tidak dikenal/);
+  });
+
+  it('jarak nyata hanya muncul bila posisi pengguna diketahui; terdekat memakai posisi', () => {
+    const tanpa = jalankanTool('cari_destinasi', { urut: 'terdekat', limit: 3 }, ctx);
+    expect(JSON.stringify(tanpa.output.hasil)).not.toContain('jarakDariPenggunaKm');
+    expect(String(tanpa.output.catatan)).toMatch(/Lokasi pengguna belum diketahui/);
+
+    const dengan = jalankanTool('cari_destinasi', { urut: 'terdekat', limit: 3 }, { ...ctx, posisi: { lat: 3.5306, lng: 98.6596 } });
+    const hasil = dengan.output.hasil as { id: string; jarakDariPenggunaKm: number }[];
+    expect(hasil[0]?.id).toBe('d04'); // Taman Cadika, tempat pengguna berdiri
+    expect(hasil[0]?.jarakDariPenggunaKm).toBeLessThan(0.5);
+    expect(hasil.map((h) => h.jarakDariPenggunaKm)).toEqual([...hasil.map((h) => h.jarakDariPenggunaKm)].sort((a, b) => a - b));
+    expect(dengan.output.catatan).toBeUndefined();
   });
 });
