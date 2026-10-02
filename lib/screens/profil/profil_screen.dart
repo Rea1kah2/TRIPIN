@@ -24,7 +24,7 @@ class ProfilScreen extends StatelessWidget {
                 BoxShadow(
                   blurRadius: 12,
                   offset: const Offset(0, 4),
-                  color: Colors.black.withOpacity(0.05),
+                  color: Colors.black.withValues(alpha: 0.05),
                 ),
               ],
             ),
@@ -33,11 +33,15 @@ class ProfilScreen extends StatelessWidget {
                 Container(
                   width: 64,
                   height: 64,
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFE1F1EC),
+                  decoration: const BoxDecoration(
+                    color: Color(0xFFE1F1EC),
                     shape: BoxShape.circle,
                   ),
-                  child: const Icon(Icons.person, size: 36, color: Color(0xFF2E7D6B)),
+                  child: const Icon(
+                    Icons.person,
+                    size: 36,
+                    color: Color(0xFF2E7D6B),
+                  ),
                 ),
                 const SizedBox(width: 16),
                 Expanded(
@@ -46,7 +50,10 @@ class ProfilScreen extends StatelessWidget {
                     children: [
                       Text(
                         user?.nama ?? 'Traveler',
-                        style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                        style: const TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                       const SizedBox(height: 4),
                       Text(
@@ -63,16 +70,25 @@ class ProfilScreen extends StatelessWidget {
           _MenuItem(
             icon: Icons.map_outlined,
             label: 'Rencana Perjalanan Saya',
-            onTap: () => Navigator.pushNamed(context, AppRoutes.rencanaList),
+            onTap: () => Navigator.pushNamed(
+              context,
+              AppRoutes.rencanaList,
+            ),
           ),
           const SizedBox(height: 12),
           _MenuItem(
             icon: Icons.favorite_border,
             label: 'Destinasi Favorit',
             onTap: () {
-              final scaffoldMessenger = ScaffoldMessenger.of(context);
+              final scaffoldMessenger =
+              ScaffoldMessenger.of(context);
+
               scaffoldMessenger.showSnackBar(
-                const SnackBar(content: Text('Buka tab Favorit di bawah untuk melihatnya')),
+                const SnackBar(
+                  content: Text(
+                    'Buka tab Favorit di bawah untuk melihatnya',
+                  ),
+                ),
               );
             },
           ),
@@ -86,12 +102,18 @@ class ProfilScreen extends StatelessWidget {
             child: const Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Tentang TRIPIN', style: TextStyle(fontWeight: FontWeight.bold)),
+                Text(
+                  'Tentang TRIPIN',
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
                 SizedBox(height: 6),
                 Text(
                   'TRIPIN adalah aplikasi discovery & perencana wisata Sumatera Utara. '
-                  'Dibangun sebagai tugas kelompok mata kuliah Pemrograman Mobile.',
-                  style: TextStyle(color: Colors.grey, height: 1.4),
+                      'Dibangun sebagai tugas kelompok mata kuliah Pemrograman Mobile.',
+                  style: TextStyle(
+                    color: Colors.grey,
+                    height: 1.4,
+                  ),
                 ),
               ],
             ),
@@ -103,11 +125,24 @@ class ProfilScreen extends StatelessWidget {
             child: OutlinedButton.icon(
               onPressed: () {
                 context.read<AuthProvider>().logout();
-                Navigator.pushNamedAndRemoveUntil(context, AppRoutes.login, (route) => false);
+
+                Navigator.pushNamedAndRemoveUntil(
+                  context,
+                  AppRoutes.login,
+                      (route) => false,
+                );
               },
-              icon: const Icon(Icons.logout, color: Colors.red),
-              label: const Text('Keluar', style: TextStyle(color: Colors.red)),
-              style: OutlinedButton.styleFrom(side: const BorderSide(color: Colors.red)),
+              icon: const Icon(
+                Icons.logout,
+                color: Colors.red,
+              ),
+              label: const Text(
+                'Keluar',
+                style: TextStyle(color: Colors.red),
+              ),
+              style: OutlinedButton.styleFrom(
+                side: const BorderSide(color: Colors.red),
+              ),
             ),
           ),
         ],
@@ -121,7 +156,11 @@ class _MenuItem extends StatelessWidget {
   final String label;
   final VoidCallback onTap;
 
-  const _MenuItem({required this.icon, required this.label, required this.onTap});
+  const _MenuItem({
+    required this.icon,
+    required this.label,
+    required this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -136,10 +175,17 @@ class _MenuItem extends StatelessWidget {
         ),
         child: Row(
           children: [
-            Icon(icon, color: const Color(0xFF2E7D6B)),
+            Icon(
+              icon,
+              color: const Color(0xFF2E7D6B),
+            ),
             const SizedBox(width: 12),
             Expanded(child: Text(label)),
-            const Icon(Icons.arrow_forward_ios, size: 14, color: Colors.grey),
+            const Icon(
+              Icons.arrow_forward_ios,
+              size: 14,
+              color: Colors.grey,
+            ),
           ],
         ),
       ),
