@@ -1,10 +1,11 @@
-import 'package:flutter/foundation.dart';
-
 /// Konfigurasi koneksi ke backend chatbot.
 ///
-/// Jalankan dengan, misalnya:
+/// Cara termudah (HP asli lewat kabel USB atau emulator): jalankan `./scripts/run_android.sh`.
+/// Skrip itu memasang `adb reverse tcp:3000 tcp:3000` sehingga `localhost:3000` di perangkat
+/// menunjuk ke backend di laptop, tanpa peduli IP Wi-Fi.
+///
+/// Tanpa USB (satu Wi-Fi), pakai IP LAN laptop:
 ///   flutter run --dart-define=API_BASE_URL=http://192.168.1.10:3000
-/// (HP asli harus memakai IP LAN laptop; emulator Android memakai 10.0.2.2.)
 class AppConfig {
   AppConfig._();
 
@@ -15,9 +16,7 @@ class AppConfig {
 
   static String get apiBaseUrl {
     if (_apiBaseUrlDefine.isNotEmpty) return _apiBaseUrlDefine;
-    if (defaultTargetPlatform == TargetPlatform.android) {
-      return 'http://10.0.2.2:3000';
-    }
+    // Android: `localhost` sampai ke laptop lewat `adb reverse` (lihat komentar kelas).
     return 'http://localhost:3000';
   }
 }

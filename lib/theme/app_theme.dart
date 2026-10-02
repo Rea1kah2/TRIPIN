@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'app_colors.dart';
+import 'glass_theme.dart';
+import 'typography.dart';
 
 const _lightBackground = Color(0xFFF7FAF8);
 const _darkBackground = Color(0xFF0F1512);
 
-ThemeData buildLightTheme() {
+ThemeData buildLightTheme({double glassIntensity = 0.5, bool reduceTransparency = false}) {
   final scheme = ColorScheme.fromSeed(seedColor: AppColors.seed).copyWith(
     primary: const Color(0xFF2E7D6B),
     onPrimary: Colors.white,
@@ -24,12 +26,13 @@ ThemeData buildLightTheme() {
   return _build(
     scheme: scheme,
     extension: TripinColors.light,
+    glass: GlassTheme.light(intensity: glassIntensity, reduceTransparency: reduceTransparency),
     background: _lightBackground,
     overlay: SystemUiOverlayStyle.dark,
   );
 }
 
-ThemeData buildDarkTheme() {
+ThemeData buildDarkTheme({double glassIntensity = 0.5, bool reduceTransparency = false}) {
   final scheme = ColorScheme.fromSeed(
     seedColor: AppColors.seed,
     brightness: Brightness.dark,
@@ -51,6 +54,7 @@ ThemeData buildDarkTheme() {
   return _build(
     scheme: scheme,
     extension: TripinColors.dark,
+    glass: GlassTheme.dark(intensity: glassIntensity, reduceTransparency: reduceTransparency),
     background: _darkBackground,
     overlay: SystemUiOverlayStyle.light,
   );
@@ -59,6 +63,7 @@ ThemeData buildDarkTheme() {
 ThemeData _build({
   required ColorScheme scheme,
   required TripinColors extension,
+  required GlassTheme glass,
   required Color background,
   required SystemUiOverlayStyle overlay,
 }) {
@@ -71,10 +76,11 @@ ThemeData _build({
     useMaterial3: true,
     brightness: scheme.brightness,
     colorScheme: scheme,
+    fontFamily: appFontFamily,
     scaffoldBackgroundColor: background,
-    extensions: [extension],
+    extensions: [extension, glass],
     appBarTheme: AppBarTheme(
-      backgroundColor: background,
+      backgroundColor: Colors.transparent,
       foregroundColor: scheme.onSurface,
       surfaceTintColor: Colors.transparent,
       scrolledUnderElevation: 0,
@@ -92,19 +98,24 @@ ThemeData _build({
       style: ElevatedButton.styleFrom(
         backgroundColor: scheme.primary,
         foregroundColor: scheme.onPrimary,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+        minimumSize: const Size(64, 48),
+        shape: const StadiumBorder(),
+        textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
       ),
     ),
     outlinedButtonTheme: OutlinedButtonThemeData(
       style: OutlinedButton.styleFrom(
         foregroundColor: scheme.primary,
         side: BorderSide(color: scheme.outline),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+        minimumSize: const Size(64, 48),
+        shape: const StadiumBorder(),
+        textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
       ),
     ),
     floatingActionButtonTheme: FloatingActionButtonThemeData(
       backgroundColor: scheme.primary,
       foregroundColor: scheme.onPrimary,
+      shape: const CircleBorder(),
     ),
     inputDecorationTheme: InputDecorationTheme(
       filled: true,

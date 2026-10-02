@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import '../models/rencana_perjalanan.dart';
 import '../theme/app_colors.dart';
 import '../utils/formatters.dart';
-import 'glass_card.dart';
+import 'glass_panel.dart';
+import 'pressable_scale.dart';
 
 class RencanaCard extends StatelessWidget {
   final RencanaPerjalanan rencana;
@@ -20,9 +21,9 @@ class RencanaCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final textSecondary = context.tripin.textSecondary;
 
-    return GestureDetector(
+    return PressableScale(
       onTap: onTap,
-      child: GlassCard(
+      child: GlassPanel(
         child: Row(
           children: [
             Expanded(
@@ -31,11 +32,11 @@ class RencanaCard extends StatelessWidget {
                 children: [
                   Text(rencana.judul,
                       style: const TextStyle(
-                          fontSize: 16, fontWeight: FontWeight.bold)),
+                          fontSize: 17, fontWeight: FontWeight.w600)),
                   const SizedBox(height: 6),
                   Text(
                     '${formatTanggal(rencana.tanggalMulai)} - ${formatTanggal(rencana.tanggalSelesai)}',
-                    style: TextStyle(color: textSecondary, fontSize: 12),
+                    style: TextStyle(color: textSecondary, fontSize: 13),
                   ),
                   const SizedBox(height: 4),
                   Text(

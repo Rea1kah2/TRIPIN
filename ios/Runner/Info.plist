@@ -72,5 +72,7 @@
 		<key>NSAllowsLocalNetworking</key>
 		<true/>
 	</dict>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>TRIPIN memakai lokasimu untuk menampilkan posisi di peta dan jarak ke tempat wisata.</string>
 </dict>
 </plist>

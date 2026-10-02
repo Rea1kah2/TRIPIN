@@ -3,7 +3,10 @@ import 'package:provider/provider.dart';
 import '../../providers/destinasi_provider.dart';
 import '../../routes/app_routes.dart';
 import '../../widgets/destinasi_card.dart';
-import '../../theme/app_colors.dart';
+import '../../widgets/glass_scaffold.dart';
+import '../../widgets/glass_app_bar.dart';
+import '../../widgets/glass_insets.dart';
+import '../../widgets/keadaan_kosong.dart';
 
 class FavoritScreen extends StatelessWidget {
   const FavoritScreen({super.key});
@@ -13,21 +16,18 @@ class FavoritScreen extends StatelessWidget {
     final provider = context.watch<DestinasiProvider>();
     final daftar = provider.daftarFavorit;
 
-    return Scaffold(
-      appBar: AppBar(title: const Text('Favorit')),
+    return GlassScaffold(
+      appBar: const GlassAppBar(judul: 'Favorit'),
       body: daftar.isEmpty
-          ? Center(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 32),
-                child: Text(
-                  'Belum ada destinasi favorit.\nTap ikon hati di kartu untuk menambahkan.',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(color: context.tripin.textSecondary),
-                ),
-              ),
+          ? KeadaanKosong(
+              ikon: Icons.favorite_border,
+              judul: 'Belum ada favorit',
+              pesan: 'Ketuk ikon hati di kartu destinasi untuk menyimpannya di sini.',
+              labelAksi: 'Jelajahi destinasi',
+              onAksi: () => Navigator.pushNamed(context, AppRoutes.destinasiList),
             )
           : ListView.builder(
-              padding: const EdgeInsets.all(16),
+              padding: EdgeInsets.fromLTRB(16, 16, 16, 16 + GlassInsets.bawahOf(context)),
               itemCount: daftar.length,
               itemBuilder: (context, index) {
                 final destinasi = daftar[index];

@@ -7,7 +7,10 @@ import '../../providers/rencana_provider.dart';
 import '../../routes/app_routes.dart';
 import '../../theme/app_colors.dart';
 import '../../utils/formatters.dart';
+import '../../theme/radii.dart';
 import '../app_snackbar.dart';
+import '../glass_button.dart';
+import '../glass_panel.dart';
 
 /// Kartu draf rencana dari asisten. Tidak menyimpan apa pun sebelum
 /// pengguna menekan "Simpan sebagai rencana".
@@ -34,15 +37,14 @@ class RencanaDraftCard extends StatelessWidget {
         : '${formatTanggal(mulai)} · ${draft.jumlahHari} hari';
     final rencanaTersimpan = draft.rencanaId == null ? null : rencana.getById(draft.rencanaId!);
 
-    return Container(
+    // Kartu sorotan: kaca dengan tepi warna utama tipis.
+    return SizedBox(
       width: double.infinity,
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: tripin.softMint,
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: colors.primary.withOpacity(0.35)),
-      ),
-      child: Column(
+      child: GlassPanel(
+        radius: Radii.xl,
+        padding: const EdgeInsets.all(16),
+        rimColor: colors.primary.withOpacity(0.5),
+        child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
@@ -56,7 +58,7 @@ class RencanaDraftCard extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 8),
-          Text(draft.judul, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+          Text(draft.judul, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600)),
           const SizedBox(height: 2),
           Text(tanggal, style: TextStyle(color: tripin.textSecondary, fontSize: 12)),
           const SizedBox(height: 10),
@@ -73,39 +75,37 @@ class RencanaDraftCard extends StatelessWidget {
           if (draft.tersimpan)
             rencanaTersimpan == null
                 ? Text('Rencana ini sudah dihapus.', style: TextStyle(color: tripin.textSecondary, fontSize: 12))
-                : SizedBox(
-                    width: double.infinity,
-                    child: OutlinedButton.icon(
-                      onPressed: () => Navigator.pushNamed(
-                        context,
-                        AppRoutes.rencanaDetail,
-                        arguments: rencanaTersimpan.id,
-                      ),
-                      icon: const Icon(Icons.check_circle, size: 18),
-                      label: const Text('Tersimpan · Lihat rencana'),
+                : GlassButton(
+                    melebar: true,
+                    icon: Icons.check_circle,
+                    label: 'Tersimpan · Lihat rencana',
+                    onPressed: () => Navigator.pushNamed(
+                      context,
+                      AppRoutes.rencanaDetail,
+                      arguments: rencanaTersimpan.id,
                     ),
                   )
           else
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton.icon(
-                onPressed: nama.isEmpty
-                    ? null
-                    : () {
-                        final baru = context.read<ChatProvider>().simpanDraft(
-                              messageId,
-                              rencana: context.read<RencanaProvider>(),
-                              destinasi: context.read<DestinasiProvider>(),
-                            );
-                        if (baru != null) {
-                          showAppSnackbar(context, 'Rencana "${baru.judul}" disimpan');
-                        }
-                      },
-                icon: const Icon(Icons.bookmark_add_outlined, size: 18),
-                label: const Text('Simpan sebagai rencana'),
-              ),
+            GlassButton(
+              melebar: true,
+              variant: GlassButtonVariant.prominent,
+              icon: Icons.bookmark_add_outlined,
+              label: 'Simpan sebagai rencana',
+              onPressed: nama.isEmpty
+                  ? null
+                  : () {
+                      final baru = context.read<ChatProvider>().simpanDraft(
+                            messageId,
+                            rencana: context.read<RencanaProvider>(),
+                            destinasi: context.read<DestinasiProvider>(),
+                          );
+                      if (baru != null) {
+                        showAppSnackbar(context, 'Rencana "${baru.judul}" disimpan');
+                      }
+                    },
             ),
         ],
+        ),
       ),
     );
   }

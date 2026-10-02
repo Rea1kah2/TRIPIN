@@ -6,6 +6,7 @@ import '../providers/rencana_provider.dart';
 import '../providers/theme_provider.dart';
 import '../widgets/bottom_nav_shell.dart';
 import 'auth/login_screen.dart';
+import '../widgets/glass_scaffold.dart';
 
 class AppGate extends StatelessWidget {
   const AppGate({super.key});
@@ -22,7 +23,7 @@ class AppGate extends StatelessWidget {
         destinasi.isLoading ||
         rencana.isLoading ||
         theme.isLoading) {
-      return const Scaffold(
+      return const GlassScaffold(
         body: Center(child: CircularProgressIndicator()),
       );
     }

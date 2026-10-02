@@ -14,6 +14,8 @@ import 'screens/rencana/tambah_rencana_screen.dart';
 import 'theme/app_theme.dart';
 import 'widgets/bottom_nav_shell.dart';
 import 'screens/destinasi/daftar_destinasi_screen.dart';
+import 'providers/review_provider.dart';
+import 'providers/lokasi_provider.dart';
 
 void main() {
   runApp(const TripinApp());
@@ -30,6 +32,8 @@ class TripinApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => DestinasiProvider()..muatData()),
         ChangeNotifierProvider(create: (_) => RencanaProvider()..muatData()),
         ChangeNotifierProvider(create: (_) => ThemeProvider()..muatData()),
+        ChangeNotifierProvider(create: (_) => ReviewProvider()..muatData()),
+        ChangeNotifierProvider(create: (_) => LokasiProvider()),
         ChangeNotifierProxyProvider<AuthProvider, ChatProvider>(
           create: (_) => ChatProvider(),
           update: (_, auth, chat) => chat!..gantiUser(auth.currentUser?.id),
@@ -39,8 +43,14 @@ class TripinApp extends StatelessWidget {
         builder: (context, themeProvider, _) => MaterialApp(
           debugShowCheckedModeBanner: false,
           title: 'TRIPIN',
-          theme: buildLightTheme(),
-          darkTheme: buildDarkTheme(),
+          theme: buildLightTheme(
+            glassIntensity: themeProvider.glassIntensity,
+            reduceTransparency: themeProvider.reduceTransparency,
+          ),
+          darkTheme: buildDarkTheme(
+            glassIntensity: themeProvider.glassIntensity,
+            reduceTransparency: themeProvider.reduceTransparency,
+          ),
           themeMode: themeProvider.themeMode,
           home: const AppGate(),
           routes: {

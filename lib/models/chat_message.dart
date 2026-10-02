@@ -63,6 +63,10 @@ class ChatMessage {
   /// Pesan error ramah bila balasan gagal; bila ada, UI menampilkan tombol ulangi.
   final String? error;
 
+  /// Status langkah yang sedang dikerjakan Tripy. Hanya ada selama balasan diterima
+  /// (tidak disimpan ke penyimpanan).
+  final String? status;
+
   const ChatMessage({
     required this.id,
     required this.role,
@@ -70,6 +74,7 @@ class ChatMessage {
     this.destinasiIds = const [],
     this.draft,
     this.error,
+    this.status,
   });
 
   factory ChatMessage.user(String text) => ChatMessage(
@@ -78,9 +83,10 @@ class ChatMessage {
         text: text,
       );
 
-  factory ChatMessage.model() => ChatMessage(
+  factory ChatMessage.model({String? status}) => ChatMessage(
         id: DateTime.now().microsecondsSinceEpoch.toString(),
         role: ChatRole.model,
+        status: status,
       );
 
   bool get kosong => text.isEmpty && destinasiIds.isEmpty && draft == null;
@@ -91,6 +97,8 @@ class ChatMessage {
     DraftRencana? draft,
     String? error,
     bool hapusError = false,
+    String? status,
+    bool hapusStatus = false,
   }) {
     return ChatMessage(
       id: id,
@@ -99,6 +107,7 @@ class ChatMessage {
       destinasiIds: destinasiIds ?? this.destinasiIds,
       draft: draft ?? this.draft,
       error: hapusError ? null : (error ?? this.error),
+      status: hapusStatus ? null : (status ?? this.status),
     );
   }
 
