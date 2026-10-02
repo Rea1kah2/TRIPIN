@@ -1,0 +1,202 @@
+[
+  {
+    "id": "d01",
+    "nama": "Danau Toba",
+    "lokasi": "Sumatera Utara",
+    "kategoriId": "k1",
+    "rating": 4.8,
+    "hargaTiket": 20000,
+    "jarakKm": 120.0,
+    "deskripsi": "Danau vulkanik terbesar di dunia dengan Pulau Samosir di tengahnya."
+  },
+  {
+    "id": "d02",
+    "nama": "Bukit Lawang",
+    "lokasi": "Langkat",
+    "kategoriId": "k5",
+    "rating": 4.7,
+    "hargaTiket": 15000,
+    "jarakKm": 68.0,
+    "deskripsi": "Gerbang menuju Taman Nasional Gunung Leuser, terkenal dengan orangutan liar."
+  },
+  {
+    "id": "d03",
+    "nama": "Berastagi",
+    "lokasi": "Karo",
+    "kategoriId": "k1",
+    "rating": 4.6,
+    "hargaTiket": 10000,
+    "jarakKm": 45.0,
+    "deskripsi": "Kota sejuk di kaki Gunung Sibayak dengan kebun buah dan pasar sayur."
+  },
+  {
+    "id": "d04",
+    "nama": "Taman Cadika",
+    "lokasi": "Medan",
+    "kategoriId": "k1",
+    "rating": 4.3,
+    "hargaTiket": 5000,
+    "jarakKm": 3.2,
+    "deskripsi": "Taman kota yang rindang untuk bersantai dan piknik keluarga."
+  },
+  {
+    "id": "d05",
+    "nama": "Istana Maimun",
+    "lokasi": "Medan",
+    "kategoriId": "k3",
+    "rating": 4.5,
+    "hargaTiket": 10000,
+    "jarakKm": 5.1,
+    "deskripsi": "Istana bersejarah peninggalan Kesultanan Deli dengan arsitektur khas Melayu."
+  },
+  {
+    "id": "d06",
+    "nama": "Air Terjun Sipiso-piso",
+    "lokasi": "Karo",
+    "kategoriId": "k1",
+    "rating": 4.7,
+    "hargaTiket": 10000,
+    "jarakKm": 55.0,
+    "deskripsi": "Air terjun spektakuler setinggi 120 meter dengan pemandangan Danau Toba."
+  },
+  {
+    "id": "d07",
+    "nama": "Tangkahan",
+    "lokasi": "Langkat",
+    "kategoriId": "k5",
+    "rating": 4.6,
+    "hargaTiket": 25000,
+    "jarakKm": 90.0,
+    "deskripsi": "Ekowisata hutan hujan tropis dengan atraksi memandikan gajah."
+  },
+  {
+    "id": "d08",
+    "nama": "Tomok, Pulau Samosir",
+    "lokasi": "Samosir",
+    "kategoriId": "k3",
+    "rating": 4.5,
+    "hargaTiket": 15000,
+    "jarakKm": 130.0,
+    "deskripsi": "Desa budaya Batak dengan makam raja dan pertunjukan Sigale-gale."
+  },
+  {
+    "id": "d09",
+    "nama": "Museum Negeri Sumatera Utara",
+    "lokasi": "Medan",
+    "kategoriId": "k3",
+    "rating": 4.2,
+    "hargaTiket": 5000,
+    "jarakKm": 4.0,
+    "deskripsi": "Koleksi sejarah dan budaya delapan etnis Sumatera Utara."
+  },
+  {
+    "id": "d10",
+    "nama": "Kebun Teh Sidamanik",
+    "lokasi": "Simalungun",
+    "kategoriId": "k1",
+    "rating": 4.4,
+    "hargaTiket": 0,
+    "jarakKm": 75.0,
+    "deskripsi": "Hamparan kebun teh hijau yang asri dan sejuk, gratis masuk."
+  },
+  {
+    "id": "d11",
+    "nama": "Danau Lau Kawar",
+    "lokasi": "Karo",
+    "kategoriId": "k1",
+    "rating": 4.5,
+    "hargaTiket": 10000,
+    "jarakKm": 60.0,
+    "deskripsi": "Danau di kaki Gunung Sinabung, populer untuk camping."
+  },
+  {
+    "id": "d12",
+    "nama": "Pantai Cermin",
+    "lokasi": "Serdang Bedagai",
+    "kategoriId": "k2",
+    "rating": 4.3,
+    "hargaTiket": 15000,
+    "jarakKm": 55.0,
+    "deskripsi": "Pantai landai dengan wahana air dan kuliner seafood."
+  },
+  {
+    "id": "d13",
+    "nama": "Bukit Gundaling",
+    "lokasi": "Karo",
+    "kategoriId": "k1",
+    "rating": 4.4,
+    "hargaTiket": 5000,
+    "jarakKm": 46.0,
+    "deskripsi": "Bukit dengan pemandangan Gunung Sinabung dan Sibayak, cocok naik kuda."
+  },
+  {
+    "id": "d14",
+    "nama": "Air Terjun Dua Warna",
+    "lokasi": "Karo",
+    "kategoriId": "k5",
+    "rating": 4.6,
+    "hargaTiket": 15000,
+    "jarakKm": 50.0,
+    "deskripsi": "Air terjun unik berwarna hijau-toska karena kandungan mineral belerang."
+  },
+  {
+    "id": "d15",
+    "nama": "Taman Simalem Resort",
+    "lokasi": "Karo",
+    "kategoriId": "k1",
+    "rating": 4.7,
+    "hargaTiket": 50000,
+    "jarakKm": 70.0,
+    "deskripsi": "Resort dengan spot foto ketinggian menghadap Danau Toba."
+  },
+  {
+    "id": "d16",
+    "nama": "Hutan Mangrove Percut",
+    "lokasi": "Deli Serdang",
+    "kategoriId": "k5",
+    "rating": 4.2,
+    "hargaTiket": 10000,
+    "jarakKm": 20.0,
+    "deskripsi": "Ekowisata hutan bakau dengan jembatan kayu dan susur sungai."
+  },
+  {
+    "id": "d17",
+    "nama": "Pantai Sri Mersing",
+    "lokasi": "Serdang Bedagai",
+    "kategoriId": "k2",
+    "rating": 4.1,
+    "hargaTiket": 10000,
+    "jarakKm": 60.0,
+    "deskripsi": "Pantai tenang dengan pasir kecoklatan, favorit warga lokal."
+  },
+  {
+    "id": "d18",
+    "nama": "Rumah Bolon Simalungun",
+    "lokasi": "Simalungun",
+    "kategoriId": "k3",
+    "rating": 4.3,
+    "hargaTiket": 5000,
+    "jarakKm": 80.0,
+    "deskripsi": "Rumah adat khas Simalungun yang masih terawat."
+  },
+  {
+    "id": "d19",
+    "nama": "Pasar Ikan Belawan",
+    "lokasi": "Medan",
+    "kategoriId": "k4",
+    "rating": 4.0,
+    "hargaTiket": 0,
+    "jarakKm": 25.0,
+    "deskripsi": "Surga kuliner seafood segar langsung dari nelayan."
+  },
+  {
+    "id": "d20",
+    "nama": "Kopi Sidikalang",
+    "lokasi": "Dairi",
+    "kategoriId": "k4",
+    "rating": 4.5,
+    "hargaTiket": 15000,
+    "jarakKm": 150.0,
+    "deskripsi": "Kedai kopi legendaris penghasil biji kopi robusta terbaik."
+  }
+]
