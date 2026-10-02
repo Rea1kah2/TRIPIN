@@ -18,13 +18,13 @@ class DaftarRencanaScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(title: const Text('Rencana Perjalanan')),
       body: daftar.isEmpty
-          ? const Center(
+          ? Center(
               child: Padding(
-                padding: EdgeInsets.symmetric(horizontal: 32),
+                padding: const EdgeInsets.symmetric(horizontal: 32),
                 child: Text(
                   'Belum ada rencana perjalanan.\nTap tombol + untuk membuat satu.',
                   textAlign: TextAlign.center,
-                  style: TextStyle(color: Colors.grey),
+                  style: TextStyle(color: context.tripin.textSecondary),
                 ),
               ),
             )
@@ -42,10 +42,10 @@ class DaftarRencanaScreen extends StatelessWidget {
                       alignment: Alignment.centerRight,
                       padding: const EdgeInsets.only(right: 20),
                       decoration: BoxDecoration(
-                        color: AppColors.favoriteActive,
+                        color: context.colors.error,
                         borderRadius: BorderRadius.circular(20),
                       ),
-                      child: const Icon(Icons.delete_outline, color: Colors.white),
+                      child: Icon(Icons.delete_outline, color: context.colors.onError),
                     ),
                     confirmDismiss: (_) => showConfirmDeleteDialog(
                       context,
@@ -70,7 +70,6 @@ class DaftarRencanaScreen extends StatelessWidget {
             ),
       floatingActionButton: FloatingActionButton(
         onPressed: () => Navigator.pushNamed(context, AppRoutes.rencanaTambah),
-        backgroundColor: AppColors.primary,
         child: const Icon(Icons.add),
       ),
     );

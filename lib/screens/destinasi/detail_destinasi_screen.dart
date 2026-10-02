@@ -28,9 +28,6 @@ class DetailDestinasiScreen extends StatelessWidget {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-      ),
       builder: (sheetContext) {
         final daftarRencana = rencanaProvider.daftarRencana;
 
@@ -47,11 +44,11 @@ class DetailDestinasiScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: 12),
                 if (daftarRencana.isEmpty)
-                  const Padding(
-                    padding: EdgeInsets.symmetric(vertical: 12),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 12),
                     child: Text(
                       'Kamu belum punya rencana perjalanan. Buat dulu satu.',
-                      style: TextStyle(color: Colors.grey),
+                      style: TextStyle(color: context.tripin.textSecondary),
                     ),
                   )
                 else
@@ -67,7 +64,7 @@ class DetailDestinasiScreen extends StatelessWidget {
                           contentPadding: EdgeInsets.zero,
                           title: Text(rencana.judul),
                           trailing: sudahAda
-                              ? const Icon(Icons.check_circle, color: AppColors.primary)
+                              ? Icon(Icons.check_circle, color: context.colors.primary)
                               : const Icon(Icons.add_circle_outline),
                           onTap: sudahAda
                               ? null
@@ -117,6 +114,8 @@ class DetailDestinasiScreen extends StatelessWidget {
     }
 
     final labelKategori = _labelKategori(context, destinasi.kategoriId);
+    final primary = context.colors.primary;
+    final tripin = context.tripin;
 
     return Scaffold(
       body: CustomScrollView(
@@ -124,14 +123,14 @@ class DetailDestinasiScreen extends StatelessWidget {
           SliverAppBar(
             expandedHeight: 260,
             pinned: true,
-            backgroundColor: AppColors.primary,
-            iconTheme: const IconThemeData(color: Colors.white),
+            backgroundColor: context.colors.surface,
+            iconTheme: IconThemeData(color: context.colors.onSurface),
             actions: [
               IconButton(
                 onPressed: () => provider.toggleFavorit(destinasi.id),
                 icon: Icon(
                   destinasi.isFavorit ? Icons.favorite : Icons.favorite_border,
-                  color: destinasi.isFavorit ? AppColors.favoriteActive : Colors.white,
+                  color: destinasi.isFavorit ? tripin.favoriteActive : context.colors.onSurface,
                 ),
               ),
             ],
@@ -156,19 +155,19 @@ class DetailDestinasiScreen extends StatelessWidget {
                   const SizedBox(height: 6),
                   Text(
                     labelKategori,
-                    style: const TextStyle(
-                      color: AppColors.primary,
+                    style: TextStyle(
+                      color: primary,
                       fontWeight: FontWeight.w600,
                     ),
                   ),
                   const SizedBox(height: 10),
                   Row(
                     children: [
-                      const Icon(Icons.location_on_outlined, size: 16, color: Colors.grey),
+                      Icon(Icons.location_on_outlined, size: 16, color: tripin.textSecondary),
                       const SizedBox(width: 4),
                       Text(
                         '${destinasi.location} · ${destinasi.distanceKm.toStringAsFixed(1)} km dari kamu',
-                        style: const TextStyle(color: Colors.grey, fontSize: 13),
+                        style: TextStyle(color: tripin.textSecondary, fontSize: 13),
                       ),
                     ],
                   ),
@@ -179,8 +178,8 @@ class DetailDestinasiScreen extends StatelessWidget {
                       RatingStars(rating: destinasi.rating, size: 18),
                       Text(
                         formatRupiah(destinasi.price),
-                        style: const TextStyle(
-                          color: AppColors.primary,
+                        style: TextStyle(
+                          color: primary,
                           fontWeight: FontWeight.bold,
                           fontSize: 16,
                         ),
@@ -195,7 +194,7 @@ class DetailDestinasiScreen extends StatelessWidget {
                   const SizedBox(height: 8),
                   Text(
                     destinasi.description,
-                    style: const TextStyle(color: Colors.black87, height: 1.5),
+                    style: TextStyle(color: context.colors.onSurface.withOpacity(0.87), height: 1.5),
                   ),
                   const SizedBox(height: 28),
                   SizedBox(
@@ -205,13 +204,21 @@ class DetailDestinasiScreen extends StatelessWidget {
                       onPressed: () => _bukaPilihRencana(context),
                       icon: const Icon(Icons.map_outlined),
                       label: const Text('Tambah ke Rencana'),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.primary,
-                        foregroundColor: Colors.white,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(15),
-                        ),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  SizedBox(
+                    width: double.infinity,
+                    height: 48,
+                    child: OutlinedButton.icon(
+                      onPressed: () => Navigator.pushNamed(
+                        context,
+                        AppRoutes.chat,
+                        arguments:
+                            'Ceritakan tentang ${destinasi.name} dan apa yang bisa dilakukan di sana.',
                       ),
+                      icon: const Icon(Icons.auto_awesome, size: 18),
+                      label: const Text('Tanya AI tentang tempat ini'),
                     ),
                   ),
                 ],

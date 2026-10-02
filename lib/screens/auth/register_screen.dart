@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
+import '../../theme/app_colors.dart';
 
 class RegisterPage extends StatefulWidget {
   const RegisterPage({super.key});
@@ -125,11 +126,11 @@ class _RegisterPageState extends State<RegisterPage> {
 
                 const SizedBox(height: 8),
 
-                const Text(
+                Text(
                   'Daftar untuk mulai menjelajahi berbagai destinasi.',
                   textAlign: TextAlign.center,
                   style: TextStyle(
-                    color: Colors.grey,
+                    color: context.tripin.textSecondary,
                     fontSize: 14,
                   ),
                 ),
@@ -144,12 +145,6 @@ class _RegisterPageState extends State<RegisterPage> {
                     labelText: 'Nama Lengkap',
                     hintText: 'Masukkan nama kamu',
                     prefixIcon: const Icon(Icons.person_outline),
-                    filled: true,
-                    fillColor: Colors.white,
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(15),
-                      borderSide: BorderSide.none,
-                    ),
                   ),
                 ),
 
@@ -164,12 +159,6 @@ class _RegisterPageState extends State<RegisterPage> {
                     labelText: 'Email',
                     hintText: 'Masukkan email kamu',
                     prefixIcon: const Icon(Icons.email_outlined),
-                    filled: true,
-                    fillColor: Colors.white,
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(15),
-                      borderSide: BorderSide.none,
-                    ),
                   ),
                 ),
 
@@ -195,12 +184,6 @@ class _RegisterPageState extends State<RegisterPage> {
                             ? Icons.visibility_off_outlined
                             : Icons.visibility_outlined,
                       ),
-                    ),
-                    filled: true,
-                    fillColor: Colors.white,
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(15),
-                      borderSide: BorderSide.none,
                     ),
                   ),
                 ),
@@ -228,12 +211,6 @@ class _RegisterPageState extends State<RegisterPage> {
                             : Icons.visibility_outlined,
                       ),
                     ),
-                    filled: true,
-                    fillColor: Colors.white,
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(15),
-                      borderSide: BorderSide.none,
-                    ),
                   ),
                 ),
 
@@ -244,13 +221,6 @@ class _RegisterPageState extends State<RegisterPage> {
                   height: 54,
                   child: ElevatedButton(
                     onPressed: register,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF2E7D6B),
-                      foregroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(15),
-                      ),
-                    ),
                     child: const Text(
                       'Daftar',
                       style: TextStyle(
@@ -266,18 +236,18 @@ class _RegisterPageState extends State<RegisterPage> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const Text(
+                    Text(
                       'Sudah punya akun? ',
-                      style: TextStyle(color: Colors.grey),
+                      style: TextStyle(color: context.tripin.textSecondary),
                     ),
                     GestureDetector(
                       onTap: () {
                         Navigator.pop(context);
                       },
-                      child: const Text(
+                      child: Text(
                         'Masuk',
                         style: TextStyle(
-                          color: Color(0xFF2E7D6B),
+                          color: context.colors.primary,
                           fontWeight: FontWeight.bold,
                         ),
                       ),

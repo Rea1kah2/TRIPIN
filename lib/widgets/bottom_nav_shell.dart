@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
+import '../screens/chat/chat_screen.dart';
 import '../screens/destinasi/daftar_destinasi_screen.dart';
 import '../screens/destinasi/favorit_screen.dart';
 import '../screens/home/home_screen.dart';
 import '../screens/profil/profil_screen.dart';
-import '../theme/app_colors.dart';
 
 class BottomNavShell extends StatefulWidget {
   const BottomNavShell({super.key});
@@ -18,6 +18,7 @@ class _BottomNavShellState extends State<BottomNavShell> {
   final _screens = const [
     HomePage(),
     DaftarDestinasiScreen(),
+    ChatScreen(embedded: true),
     FavoritScreen(),
     ProfilScreen(),
   ];
@@ -29,8 +30,6 @@ class _BottomNavShellState extends State<BottomNavShell> {
       bottomNavigationBar: NavigationBar(
         selectedIndex: _selectedIndex,
         onDestinationSelected: (index) => setState(() => _selectedIndex = index),
-        backgroundColor: Colors.white,
-        indicatorColor: AppColors.paleMint,
         destinations: const [
           NavigationDestination(
             icon: Icon(Icons.home_outlined),
@@ -41,6 +40,11 @@ class _BottomNavShellState extends State<BottomNavShell> {
             icon: Icon(Icons.explore_outlined),
             selectedIcon: Icon(Icons.explore),
             label: 'Jelajah',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.auto_awesome_outlined),
+            selectedIcon: Icon(Icons.auto_awesome),
+            label: 'Asisten',
           ),
           NavigationDestination(
             icon: Icon(Icons.favorite_border),

@@ -39,12 +39,16 @@ class DestinasiCard extends StatelessWidget {
       child: GlassCard(
         padding: EdgeInsets.zero,
         radius: 20,
-        child: dense ? _buildDense(labelKategori) : _buildFull(labelKategori),
+        child: dense
+            ? _buildDense(context, labelKategori)
+            : _buildFull(context, labelKategori),
       ),
     );
   }
 
-  Widget _buildFull(String labelKategori) {
+  Widget _buildFull(BuildContext context, String labelKategori) {
+    final primary = context.colors.primary;
+    final tripin = context.tripin;
     return SizedBox(
       width: 220,
       child: Column(
@@ -69,12 +73,12 @@ class DestinasiCard extends StatelessWidget {
                     width: 36,
                     height: 36,
                     decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.9),
+                      color: context.colors.surface.withOpacity(0.9),
                       shape: BoxShape.circle,
                     ),
                     child: Icon(
                       destinasi.isFavorit ? Icons.favorite : Icons.favorite_border,
-                      color: destinasi.isFavorit ? AppColors.favoriteActive : Colors.grey,
+                      color: destinasi.isFavorit ? tripin.favoriteActive : tripin.textSecondary,
                       size: 20,
                     ),
                   ),
@@ -91,17 +95,17 @@ class DestinasiCard extends StatelessWidget {
                 const SizedBox(height: 4),
                 Text(
                   labelKategori,
-                  style: const TextStyle(color: AppColors.primary, fontSize: 11, fontWeight: FontWeight.w600),
+                  style: TextStyle(color: primary, fontSize: 11, fontWeight: FontWeight.w600),
                 ),
                 const SizedBox(height: 6),
                 Row(
                   children: [
-                    const Icon(Icons.location_on_outlined, size: 15, color: Colors.grey),
+                    Icon(Icons.location_on_outlined, size: 15, color: tripin.textSecondary),
                     const SizedBox(width: 3),
                     Expanded(
                       child: Text(
                         destinasi.location,
-                        style: const TextStyle(color: Colors.grey, fontSize: 11),
+                        style: TextStyle(color: tripin.textSecondary, fontSize: 11),
                         overflow: TextOverflow.ellipsis,
                       ),
                     ),
@@ -114,7 +118,7 @@ class DestinasiCard extends StatelessWidget {
                     RatingStars(rating: destinasi.rating, size: 15),
                     Text(
                       formatRupiah(destinasi.price),
-                      style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold, fontSize: 12),
+                      style: TextStyle(color: primary, fontWeight: FontWeight.bold, fontSize: 12),
                     ),
                   ],
                 ),
@@ -126,7 +130,9 @@ class DestinasiCard extends StatelessWidget {
     );
   }
 
-  Widget _buildDense(String labelKategori) {
+  Widget _buildDense(BuildContext context, String labelKategori) {
+    final primary = context.colors.primary;
+    final tripin = context.tripin;
     return SizedBox(
       height: 105,
       child: Padding(
@@ -147,11 +153,11 @@ class DestinasiCard extends StatelessWidget {
                   const SizedBox(height: 6),
                   Row(
                     children: [
-                      const Icon(Icons.near_me_outlined, size: 14, color: AppColors.primary),
+                      Icon(Icons.near_me_outlined, size: 14, color: primary),
                       const SizedBox(width: 3),
                       Text(
                         '${destinasi.distanceKm.toStringAsFixed(1)} km dari kamu',
-                        style: const TextStyle(color: AppColors.primary, fontSize: 11, fontWeight: FontWeight.w500),
+                        style: TextStyle(color: primary, fontSize: 11, fontWeight: FontWeight.w500),
                       ),
                     ],
                   ),
@@ -162,7 +168,7 @@ class DestinasiCard extends StatelessWidget {
               onTap: onFavoriteTap,
               child: Icon(
                 destinasi.isFavorit ? Icons.favorite : Icons.favorite_border,
-                color: destinasi.isFavorit ? AppColors.favoriteActive : Colors.grey,
+                color: destinasi.isFavorit ? tripin.favoriteActive : tripin.textSecondary,
                 size: 20,
               ),
             ),

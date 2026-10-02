@@ -86,9 +86,6 @@ class _DetailRencanaScreenState extends State<DetailRencanaScreen> {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-      ),
       builder: (sheetContext) {
         return SafeArea(
           child: Padding(
@@ -100,9 +97,9 @@ class _DetailRencanaScreenState extends State<DetailRencanaScreen> {
                 const Text('Tambah Destinasi', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                 const SizedBox(height: 12),
                 if (belumAda.isEmpty)
-                  const Padding(
-                    padding: EdgeInsets.symmetric(vertical: 12),
-                    child: Text('Semua destinasi sudah ada di rencana ini.', style: TextStyle(color: Colors.grey)),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    child: Text('Semua destinasi sudah ada di rencana ini.', style: TextStyle(color: context.tripin.textSecondary)),
                   )
                 else
                   Flexible(
@@ -225,10 +222,6 @@ class _DetailRencanaScreenState extends State<DetailRencanaScreen> {
                 Expanded(
                   child: ElevatedButton(
                     onPressed: _simpanEdit,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.primary,
-                      foregroundColor: Colors.white,
-                    ),
                     child: const Text('Simpan'),
                   ),
                 ),
@@ -237,11 +230,11 @@ class _DetailRencanaScreenState extends State<DetailRencanaScreen> {
           ] else ...[
             Row(
               children: [
-                const Icon(Icons.calendar_today, size: 16, color: Colors.grey),
+                Icon(Icons.calendar_today, size: 16, color: context.tripin.textSecondary),
                 const SizedBox(width: 6),
                 Text(
                   '${formatTanggal(rencana.tanggalMulai)} - ${formatTanggal(rencana.tanggalSelesai)}',
-                  style: const TextStyle(color: Colors.grey),
+                  style: TextStyle(color: context.tripin.textSecondary),
                 ),
               ],
             ),
@@ -267,9 +260,9 @@ class _DetailRencanaScreenState extends State<DetailRencanaScreen> {
           ),
           const SizedBox(height: 8),
           if (daftarDestinasi.isEmpty)
-            const Padding(
-              padding: EdgeInsets.symmetric(vertical: 16),
-              child: Text('Belum ada destinasi di rencana ini.', style: TextStyle(color: Colors.grey)),
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 16),
+              child: Text('Belum ada destinasi di rencana ini.', style: TextStyle(color: context.tripin.textSecondary)),
             )
           else
             ...daftarDestinasi.map((destinasi) {
@@ -286,7 +279,7 @@ class _DetailRencanaScreenState extends State<DetailRencanaScreen> {
                       ),
                     ),
                     IconButton(
-                      icon: const Icon(Icons.remove_circle_outline, color: AppColors.favoriteActive),
+                      icon: Icon(Icons.remove_circle_outline, color: context.tripin.favoriteActive),
                       onPressed: () {
                         rencanaProvider.hapusDestinasiDariRencana(rencana.id, destinasi.id);
                         showAppSnackbar(context, '${destinasi.name} dikeluarkan dari rencana');

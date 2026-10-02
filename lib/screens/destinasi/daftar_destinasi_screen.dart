@@ -39,15 +39,9 @@ class _DaftarDestinasiScreenState extends State<DaftarDestinasiScreen> {
             child: TextField(
               controller: searchController,
               onChanged: (_) => setState(() {}),
-              decoration: InputDecoration(
+              decoration: const InputDecoration(
                 hintText: 'Cari destinasi...',
-                prefixIcon: const Icon(Icons.search),
-                filled: true,
-                fillColor: Colors.white,
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(14),
-                  borderSide: BorderSide.none,
-                ),
+                prefixIcon: Icon(Icons.search),
               ),
             ),
           ),
@@ -60,12 +54,9 @@ class _DaftarDestinasiScreenState extends State<DaftarDestinasiScreen> {
               children: [
                 Padding(
                   padding: const EdgeInsets.only(right: 8),
-                  child: ChoiceChip(
-                    label: const Text('Semua'),
+                  child: SemuaChip(
                     selected: selectedKategoriId == null,
-                    onSelected: (_) =>
-                        setState(() => selectedKategoriId = null),
-                    showCheckmark: false,
+                    onTap: () => setState(() => selectedKategoriId = null),
                   ),
                 ),
                 for (final kategori in provider.daftarKategori)

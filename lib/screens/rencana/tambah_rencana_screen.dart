@@ -137,7 +137,7 @@ class _TambahRencanaScreenState extends State<TambahRencanaScreen> {
             const SizedBox(height: 4),
             Text(
               '${destinasiTerpilih.length} destinasi terpilih',
-              style: const TextStyle(color: AppColors.primary, fontSize: 12, fontWeight: FontWeight.w600),
+              style: TextStyle(color: context.colors.primary, fontSize: 12, fontWeight: FontWeight.w600),
             ),
             const SizedBox(height: 8),
             ...daftarDestinasi.map((destinasi){
@@ -165,11 +165,6 @@ class _TambahRencanaScreenState extends State<TambahRencanaScreen> {
               height: 54,
               child: ElevatedButton(
                 onPressed: simpan,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primary,
-                  foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-                ),
                 child: const Text('Simpan Rencana', style: TextStyle(fontWeight: FontWeight.bold)),
               ),
             ),
