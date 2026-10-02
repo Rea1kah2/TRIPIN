@@ -19,11 +19,6 @@ class TripinColors extends ThemeExtension<TripinColors> {
   final Color surfaceElevated; // bottom sheet, dialog
   final Color imagePlaceholder;
   final Color softShadow;
-  final Color glassFillStart;
-  final Color glassFillEnd;
-  final Color glassBorder;
-  final Color glassHighlight;
-  final Color glassShadow;
 
   const TripinColors({
     required this.paleMint,
@@ -34,43 +29,28 @@ class TripinColors extends ThemeExtension<TripinColors> {
     required this.surfaceElevated,
     required this.imagePlaceholder,
     required this.softShadow,
-    required this.glassFillStart,
-    required this.glassFillEnd,
-    required this.glassBorder,
-    required this.glassHighlight,
-    required this.glassShadow,
   });
 
   static const light = TripinColors(
     paleMint: Color(0xFFE1F1EC),
     softMint: Color(0xFFE8F4F0),
-    textSecondary: Color(0xFF9E9E9E),
+    textSecondary: Color(0xFF586761), // abu kehijauan; kontras >= 4.5:1 di atas latar hidup dan kartu
     ratingStar: Color(0xFFFFC107),
     favoriteActive: Color(0xFFF44336),
     surfaceElevated: Color(0xFFFFFFFF),
     imagePlaceholder: Color(0xFFEEEEEE),
     softShadow: Color(0x0D000000), // hitam 5%
-    glassFillStart: Color(0x8CFFFFFF), // putih 55%
-    glassFillEnd: Color(0x40FFFFFF), // putih 25%
-    glassBorder: Color(0x99FFFFFF), // putih 60%
-    glassHighlight: Color(0x80FFFFFF), // putih 50%
-    glassShadow: Color(0x1A000000), // hitam 10%
   );
 
   static const dark = TripinColors(
     paleMint: Color(0xFF1F3B33),
     softMint: Color(0xFF1A2B25),
-    textSecondary: Color(0xFF9AABA3),
+    textSecondary: Color(0xFFA8B8B0), // sedikit lebih terang agar >= 4.5:1 di atas puncak blob mint
     ratingStar: Color(0xFFFFCA5C),
     favoriteActive: Color(0xFFFF7B72),
     surfaceElevated: Color(0xFF1E2A25),
     imagePlaceholder: Color(0xFF1E2A25),
     softShadow: Color(0x4D000000), // hitam 30%
-    glassFillStart: Color(0x14FFFFFF), // putih 8%
-    glassFillEnd: Color(0x08FFFFFF), // putih 3%
-    glassBorder: Color(0x1FFFFFFF), // putih 12%
-    glassHighlight: Color(0x26FFFFFF), // putih 15%
-    glassShadow: Color(0x66000000), // hitam 40%
   );
 
   @override
@@ -83,11 +63,6 @@ class TripinColors extends ThemeExtension<TripinColors> {
     Color? surfaceElevated,
     Color? imagePlaceholder,
     Color? softShadow,
-    Color? glassFillStart,
-    Color? glassFillEnd,
-    Color? glassBorder,
-    Color? glassHighlight,
-    Color? glassShadow,
   }) {
     return TripinColors(
       paleMint: paleMint ?? this.paleMint,
@@ -98,11 +73,6 @@ class TripinColors extends ThemeExtension<TripinColors> {
       surfaceElevated: surfaceElevated ?? this.surfaceElevated,
       imagePlaceholder: imagePlaceholder ?? this.imagePlaceholder,
       softShadow: softShadow ?? this.softShadow,
-      glassFillStart: glassFillStart ?? this.glassFillStart,
-      glassFillEnd: glassFillEnd ?? this.glassFillEnd,
-      glassBorder: glassBorder ?? this.glassBorder,
-      glassHighlight: glassHighlight ?? this.glassHighlight,
-      glassShadow: glassShadow ?? this.glassShadow,
     );
   }
 
@@ -119,11 +89,6 @@ class TripinColors extends ThemeExtension<TripinColors> {
       imagePlaceholder:
           Color.lerp(imagePlaceholder, other.imagePlaceholder, t)!,
       softShadow: Color.lerp(softShadow, other.softShadow, t)!,
-      glassFillStart: Color.lerp(glassFillStart, other.glassFillStart, t)!,
-      glassFillEnd: Color.lerp(glassFillEnd, other.glassFillEnd, t)!,
-      glassBorder: Color.lerp(glassBorder, other.glassBorder, t)!,
-      glassHighlight: Color.lerp(glassHighlight, other.glassHighlight, t)!,
-      glassShadow: Color.lerp(glassShadow, other.glassShadow, t)!,
     );
   }
 }

@@ -6,6 +6,8 @@ import '../../providers/rencana_provider.dart';
 import '../../theme/app_colors.dart';
 import '../../utils/formatters.dart';
 import '../../widgets/app_snackbar.dart';
+import '../../widgets/glass_scaffold.dart';
+import '../../widgets/glass_app_bar.dart';
 
 class TambahRencanaScreen extends StatefulWidget {
   const TambahRencanaScreen({super.key});
@@ -82,8 +84,8 @@ class _TambahRencanaScreenState extends State<TambahRencanaScreen> {
   Widget build(BuildContext context){
     final daftarDestinasi = context.watch<DestinasiProvider>().daftarDestinasi;
 
-    return Scaffold(
-      appBar: AppBar(title: const Text('Tambah Rencana Perjalanan')),
+    return GlassScaffold(
+      appBar: const GlassAppBar(judul: 'Tambah Rencana'),
       body: Form(
         key: _formKey,
         autovalidateMode: AutovalidateMode.onUserInteraction,

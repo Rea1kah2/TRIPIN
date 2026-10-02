@@ -7,6 +7,12 @@ import '../../theme/app_colors.dart';
 import '../../widgets/app_snackbar.dart';
 import '../../widgets/chat/chat_bubble.dart';
 import '../../widgets/confirm_delete_dialog.dart';
+import '../../widgets/glass_scaffold.dart';
+import '../../widgets/glass_app_bar.dart';
+import '../../widgets/glass_panel.dart';
+import '../../widgets/glass_insets.dart';
+import '../../widgets/pressable_scale.dart';
+import '../../providers/lokasi_provider.dart';
 
 const _saran = [
   'Rekomendasi wisata alam yang murah',
@@ -16,7 +22,7 @@ const _saran = [
   'Cara membuat rencana perjalanan',
 ];
 
-/// Layar chat dengan Asisten TRIPIN. [embedded] = dipakai sebagai tab
+/// Layar chat dengan Tripy. [embedded] = dipakai sebagai tab
 /// (tanpa tombol kembali); [promptAwal] dikirim otomatis saat layar dibuka.
 class ChatScreen extends StatefulWidget {
   final bool embedded;
@@ -61,13 +67,14 @@ class _ChatScreenState extends State<ChatScreen> {
   Map<String, dynamic> _konteks() => bangunKonteks(
         context.read<DestinasiProvider>(),
         context.read<RencanaProvider>(),
+        posisi: context.read<LokasiProvider>().posisi,
       );
 
   void _kirim(String teks) {
     final chat = context.read<ChatProvider>();
     if (teks.trim().isEmpty) return;
     if (chat.isStreaming) {
-      showAppSnackbar(context, 'Tunggu balasan selesai dulu ya', isError: true);
+      showAppSnackbar(context, 'Tunggu Tripy selesai jawab dulu ya', isError: true);
       return;
     }
     _input.clear();
@@ -101,10 +108,9 @@ class _ChatScreenState extends State<ChatScreen> {
     final colors = context.colors;
     _scrollKeBawahJikaPerlu(chat);
 
-    return Scaffold(
-      appBar: AppBar(
-        automaticallyImplyLeading: !widget.embedded,
-        titleSpacing: widget.embedded ? 20 : 0,
+    return GlassScaffold(
+      appBar: GlassAppBar(
+        otomatisKembali: !widget.embedded,
         title: Row(
           children: [
             Container(
@@ -116,7 +122,7 @@ class _ChatScreenState extends State<ChatScreen> {
             const SizedBox(width: 10),
             const Flexible(
               child: Text(
-                'Asisten TRIPIN',
+                'Tripy',
                 overflow: TextOverflow.ellipsis,
                 style: TextStyle(fontWeight: FontWeight.bold),
               ),
@@ -190,12 +196,12 @@ class _Kosong extends StatelessWidget {
             child: Icon(Icons.auto_awesome, size: 38, color: colors.primary),
           ),
           const SizedBox(height: 16),
-          const Text('Halo, aku Asisten TRIPIN 👋',
+          const Text('Halo, aku Tripy 👋 Mau healing ke mana nih?',
               style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
           const SizedBox(height: 8),
           Text(
-            'Aku bisa bantu memilih destinasi, menyusun rencana perjalanan, '
-            'dan menjelaskan cara memakai aplikasi.',
+            'Aku bisa bantu milih destinasi, nyusun rencana perjalanan, '
+            'dan jelasin cara pakai aplikasi ini.',
             textAlign: TextAlign.center,
             style: TextStyle(color: context.tripin.textSecondary, height: 1.4),
           ),
@@ -205,17 +211,39 @@ class _Kosong extends StatelessWidget {
             spacing: 8,
             runSpacing: 8,
             children: [
-              for (final s in _saran)
-                ActionChip(
-                  label: Text(s),
-                  onPressed: () => onPilih(s),
-                  backgroundColor: context.tripin.paleMint,
-                  labelStyle: TextStyle(color: colors.primary, fontWeight: FontWeight.w600),
-                  side: BorderSide.none,
-                ),
+              for (final s in _saran) _SaranChip(label: s, onTap: () => onPilih(s)),
             ],
           ),
         ],
+      ),
+    );
+  }
+}
+
+/// Chip saran: kapsul kaca tipis (tinggi 44 untuk area sentuh).
+class _SaranChip extends StatelessWidget {
+  final String label;
+  final VoidCallback onTap;
+
+  const _SaranChip({required this.label, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return Semantics(
+      button: true,
+      label: label,
+      child: PressableScale(
+        onTap: onTap,
+        skala: 0.96,
+        child: GlassPanel(
+          radius: 999,
+          bias: -0.25,
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          child: Text(
+            label,
+            style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: context.colors.primary),
+          ),
+        ),
       ),
     );
   }
@@ -226,6 +254,8 @@ final _bentukInput = OutlineInputBorder(
   borderSide: BorderSide.none,
 );
 
+/// Komposer kapsul kaca yang melayang di atas tab bar. Input memakai fill (bukan kaca)
+/// supaya tidak ada kaca di atas kaca.
 class _Komposer extends StatelessWidget {
   final TextEditingController controller;
   final bool sedangMengetik;
@@ -243,16 +273,17 @@ class _Komposer extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = context.colors;
     final bisaKirim = controller.text.trim().isNotEmpty && !sedangMengetik;
+    final inset = GlassInsets.bawahOf(context);
 
-    return Container(
-      decoration: BoxDecoration(
-        color: colors.surface,
-        border: Border(top: BorderSide(color: colors.outlineVariant)),
-      ),
-      child: SafeArea(
-        top: false,
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(12, 8, 8, 8),
+    return SafeArea(
+      top: false,
+      bottom: inset == 0,
+      child: Padding(
+        padding: EdgeInsets.fromLTRB(12, 4, 12, 8 + inset),
+        child: GlassPanel(
+          blur: true,
+          radius: 30,
+          padding: const EdgeInsets.fromLTRB(6, 6, 6, 6),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
@@ -265,26 +296,28 @@ class _Komposer extends StatelessWidget {
                   textCapitalization: TextCapitalization.sentences,
                   keyboardType: TextInputType.multiline,
                   decoration: InputDecoration(
-                    hintText: 'Tanya soal wisata…',
+                    hintText: 'Tanya Tripy soal wisata…',
                     counterText: '',
-                    fillColor: context.tripin.softMint,
+                    fillColor: colors.onSurface.withOpacity(0.06),
                     border: _bentukInput,
                     enabledBorder: _bentukInput,
                     focusedBorder: _bentukInput,
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                   ),
                 ),
               ),
-              const SizedBox(width: 4),
+              const SizedBox(width: 6),
               if (sedangMengetik)
                 IconButton.filledTonal(
                   tooltip: 'Hentikan',
+                  style: IconButton.styleFrom(minimumSize: const Size(48, 48)),
                   onPressed: onBatal,
                   icon: const Icon(Icons.stop_rounded),
                 )
               else
                 IconButton.filled(
                   tooltip: 'Kirim',
+                  style: IconButton.styleFrom(minimumSize: const Size(48, 48)),
                   onPressed: bisaKirim ? onKirim : null,
                   icon: const Icon(Icons.arrow_upward_rounded),
                 ),

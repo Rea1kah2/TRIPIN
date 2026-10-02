@@ -8,6 +8,9 @@ import '../../utils/formatters.dart';
 import '../../widgets/app_snackbar.dart';
 import '../../widgets/confirm_delete_dialog.dart';
 import '../../widgets/destinasi_card.dart';
+import '../../widgets/glass_scaffold.dart';
+import '../../widgets/glass_sheet.dart';
+import '../../widgets/glass_app_bar.dart';
 
 class DetailRencanaScreen extends StatefulWidget {
   final String rencanaId;
@@ -83,9 +86,8 @@ class _DetailRencanaScreenState extends State<DetailRencanaScreen> {
         .where((d) => !idSudahAda.contains(d.id))
         .toList();
 
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
+    showGlassSheet(
+      context,
       builder: (sheetContext) {
         return SafeArea(
           child: Padding(
@@ -154,9 +156,9 @@ class _DetailRencanaScreenState extends State<DetailRencanaScreen> {
         .whereType<Destinasi>()
         .toList();
 
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(editMode ? 'Edit Rencana' : rencana.judul),
+    return GlassScaffold(
+      appBar: GlassAppBar(
+        judul: editMode ? 'Edit Rencana' : rencana.judul,
         actions: [
           if (!editMode)
             IconButton(

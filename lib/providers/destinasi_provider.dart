@@ -43,12 +43,6 @@ class DestinasiProvider extends ChangeNotifier {
     }).toList();
   }
 
-  List<Destinasi> get destinasiTerdekat {
-    final salinan = List<Destinasi>.from(_daftarDestinasi);
-    salinan.sort((a, b) => a.distanceKm.compareTo(b.distanceKm));
-    return salinan;
-  }
-
   List<Destinasi> get destinasiTeratas {
     final salinan = List<Destinasi>.from(_daftarDestinasi);
     salinan.sort((a, b) => b.rating.compareTo(a.rating));

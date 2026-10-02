@@ -7,13 +7,23 @@ import '../services/local_storage_service.dart';
 import '../utils/formatters.dart';
 import 'destinasi_provider.dart';
 import 'rencana_provider.dart';
+import '../services/location_service.dart';
 
 const _maksRiwayatTersimpan = 50;
 
+/// Status yang tampil sejak pesan dikirim, sebelum backend mengirim status pertama.
+const statusAwal = 'Tripy lagi mikir…';
+
 /// Konteks ringan untuk personalisasi. Sengaja TIDAK memuat nama/email user.
-Map<String, dynamic> bangunKonteks(DestinasiProvider destinasi, RencanaProvider rencana) {
+Map<String, dynamic> bangunKonteks(
+  DestinasiProvider destinasi,
+  RencanaProvider rencana, {
+  Posisi? posisi,
+}) {
   return {
     'hariIni': formatTanggalIso(DateTime.now()),
+    // Posisi kasar (dibulatkan 2 desimal, sekitar 1 km) dan hanya bila lokasi diizinkan.
+    if (posisi != null) 'posisi': {'lat': _bulat2(posisi.lat), 'lng': _bulat2(posisi.lng)},
     'favoritIds': destinasi.daftarFavorit.map((d) => d.id).toList(),
     'rencana': [
       for (final r in rencana.daftarRencana.take(10))
@@ -26,6 +36,8 @@ Map<String, dynamic> bangunKonteks(DestinasiProvider destinasi, RencanaProvider 
     ],
   };
 }
+
+double _bulat2(double v) => (v * 100).round() / 100;
 
 class ChatProvider extends ChangeNotifier {
   final ChatApi _api;
@@ -66,7 +78,7 @@ class ChatProvider extends ChangeNotifier {
   Future<void> kirim(String teks, {required Map<String, dynamic> konteks}) async {
     final t = teks.trim();
     if (t.isEmpty || isStreaming) return;
-    _messages = [..._messages, ChatMessage.user(t), ChatMessage.model()];
+    _messages = [..._messages, ChatMessage.user(t), ChatMessage.model(status: statusAwal)];
     isStreaming = true;
     notifyListeners();
     _mulaiStream(konteks);
@@ -77,7 +89,10 @@ class ChatProvider extends ChangeNotifier {
     if (isStreaming || _messages.isEmpty) return;
     final terakhir = _messages.last;
     if (terakhir.role != ChatRole.model || terakhir.error == null) return;
-    _messages = [..._messages.sublist(0, _messages.length - 1), ChatMessage.model()];
+    _messages = [
+      ..._messages.sublist(0, _messages.length - 1),
+      ChatMessage.model(status: statusAwal),
+    ];
     isStreaming = true;
     notifyListeners();
     _mulaiStream(konteks);
@@ -91,6 +106,8 @@ class ChatProvider extends ChangeNotifier {
     // Buang placeholder kosong; balasan parsial tetap disimpan.
     if (_messages.isNotEmpty && _messages.last.kosong) {
       _messages = _messages.sublist(0, _messages.length - 1);
+    } else {
+      _ubahTerakhir((m) => m.copyWith(hapusStatus: true));
     }
     notifyListeners();
     _simpan();
@@ -166,8 +183,10 @@ class ChatProvider extends ChangeNotifier {
 
   void _terapkan(ChatEvent e) {
     switch (e) {
+      case ChatStatus(:final text):
+        _ubahTerakhir((m) => m.copyWith(status: text));
       case ChatDelta(:final text):
-        _ubahTerakhir((m) => m.copyWith(text: m.text + text));
+        _ubahTerakhir((m) => m.copyWith(text: m.text + text, hapusStatus: true));
       case ChatDestinasi(:final ids):
         _ubahTerakhir((m) => m.copyWith(
               destinasiIds: [
@@ -181,7 +200,7 @@ class ChatProvider extends ChangeNotifier {
         _selesai();
         return;
       case ChatError(:final message):
-        _ubahTerakhir((m) => m.copyWith(error: message));
+        _ubahTerakhir((m) => m.copyWith(error: message, hapusStatus: true));
         isStreaming = false;
         _sub?.cancel();
         _sub = null;
@@ -194,6 +213,7 @@ class ChatProvider extends ChangeNotifier {
     if (_messages.isNotEmpty && _messages.last.kosong && _messages.last.error == null) {
       _ubahTerakhir((m) => m.copyWith(error: 'Koneksi terputus sebelum balasan selesai.'));
     }
+    _ubahTerakhir((m) => m.copyWith(hapusStatus: true));
     isStreaming = false;
     _sub?.cancel();
     _sub = null;

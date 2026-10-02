@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
@@ -5,16 +6,21 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:tugas_kelompok/models/chat_message.dart';
 import 'package:tugas_kelompok/providers/chat_provider.dart';
 import 'package:tugas_kelompok/providers/destinasi_provider.dart';
+import 'package:tugas_kelompok/providers/lokasi_provider.dart';
 import 'package:tugas_kelompok/providers/rencana_provider.dart';
 import 'package:tugas_kelompok/routes/app_routes.dart';
 import 'package:tugas_kelompok/screens/chat/chat_screen.dart';
 import 'package:tugas_kelompok/services/chat_service.dart';
 import 'package:tugas_kelompok/theme/app_theme.dart';
+import 'package:tugas_kelompok/widgets/chat/assistant_status.dart';
 
 class FakeApi implements ChatApi {
   List<ChatEvent> events;
   int panggilan = 0;
-  FakeApi(this.events);
+
+  /// Bila diisi, stream menahan diri setelah event terakhir sampai diselesaikan.
+  final Completer<void>? tahan;
+  FakeApi(this.events, {this.tahan});
 
   @override
   Stream<ChatEvent> kirim({required List<ChatMessage> riwayat, required Map<String, dynamic> konteks}) async* {
@@ -22,6 +28,7 @@ class FakeApi implements ChatApi {
     for (final e in events) {
       yield e;
     }
+    if (tahan != null) await tahan!.future;
   }
 }
 
@@ -46,6 +53,7 @@ Future<ChatProvider> pasang(WidgetTester tester, FakeApi api, {bool gelap = fals
       ChangeNotifierProvider.value(value: destinasi),
       ChangeNotifierProvider.value(value: rencana),
       ChangeNotifierProvider.value(value: chat),
+      ChangeNotifierProvider(create: (_) => LokasiProvider()),
     ],
     child: MaterialApp(
       theme: buildLightTheme(),
@@ -60,18 +68,93 @@ Future<ChatProvider> pasang(WidgetTester tester, FakeApi api, {bool gelap = fals
 }
 
 void main() {
+  testWidgets('indikator Tripy: status backend tampil saat belum ada teks', (tester) async {
+    final tahan = Completer<void>();
+    final api = FakeApi([const ChatStatus('Nyusun rencana…')], tahan: tahan);
+    await pasang(tester, api, prompt: 'halo');
+    await tunggu(tester);
+
+    expect(find.text('Nyusun rencana…'), findsOneWidget);
+    expect(find.text('Menulis…'), findsNothing);
+    tahan.complete();
+    await tunggu(tester);
+  });
+
+  testWidgets('indikator Tripy: "Menulis…" muncul saat teks mengalir dan hilang saat selesai', (tester) async {
+    final tahan = Completer<void>();
+    final api = FakeApi([const ChatDelta('Hai, ini jawabannya')], tahan: tahan);
+    await pasang(tester, api, prompt: 'halo');
+    await tunggu(tester);
+
+    expect(find.textContaining('Hai, ini jawabannya'), findsOneWidget);
+    expect(find.text('Menulis…'), findsOneWidget);
+
+    tahan.complete();
+    await tunggu(tester);
+    expect(find.text('Menulis…'), findsNothing);
+    expect(find.textContaining('Hai, ini jawabannya'), findsOneWidget);
+  });
+
+  testWidgets('indikator Tripy: Reduce Motion tanpa gerak, tetapi titik tetap berkedip (opacity)', (tester) async {
+    final tahan = Completer<void>();
+    final api = FakeApi([const ChatStatus('Nyari tempat…')], tahan: tahan);
+    tester.platformDispatcher.accessibilityFeaturesTestValue =
+        const FakeAccessibilityFeatures(disableAnimations: true);
+    addTearDown(tester.platformDispatcher.clearAccessibilityFeaturesTestValue);
+    await pasang(tester, api, prompt: 'halo');
+    await tunggu(tester);
+    expect(find.text('Nyari tempat…'), findsOneWidget);
+
+    List<double> opacity() => tester
+        .widgetList<Opacity>(find.descendant(of: find.byType(AssistantStatus), matching: find.byType(Opacity)))
+        .map((o) => o.opacity)
+        .toList();
+
+    final awal = opacity();
+    await tester.pump(const Duration(milliseconds: 350));
+    expect(opacity(), isNot(awal), reason: 'titik harus tetap berubah supaya pengguna tahu Tripy bekerja');
+
+    // Tidak ada gerak naik-turun: semua titik berada pada offset vertikal 0.
+    final geser = tester
+        .widgetList<Transform>(find.descendant(of: find.byType(AssistantStatus), matching: find.byType(Transform)))
+        .where((t) => t.transform.getTranslation().y != 0);
+    expect(geser, isEmpty);
+
+    tahan.complete();
+    await tunggu(tester);
+  });
+
+  testWidgets('indikator Tripy: gerak normal menggeser titik naik-turun', (tester) async {
+    final tahan = Completer<void>();
+    final api = FakeApi([const ChatStatus('Nyari tempat…')], tahan: tahan);
+    await pasang(tester, api, prompt: 'halo');
+    await tunggu(tester);
+
+    var adaGeser = false;
+    for (var i = 0; i < 12 && !adaGeser; i++) {
+      await tester.pump(const Duration(milliseconds: 100));
+      adaGeser = tester
+          .widgetList<Transform>(find.descendant(of: find.byType(AssistantStatus), matching: find.byType(Transform)))
+          .any((t) => t.transform.getTranslation().y != 0);
+    }
+    expect(adaGeser, isTrue);
+
+    tahan.complete();
+    await tunggu(tester);
+  });
+
   testWidgets('layar kosong menampilkan sapaan dan saran; mengetuk saran mengirim pesan', (tester) async {
     final api = FakeApi([const ChatDelta('Ini jawabannya.'), const ChatDone()]);
     await pasang(tester, api);
 
-    expect(find.text('Halo, aku Asisten TRIPIN 👋'), findsOneWidget);
+    expect(find.text('Halo, aku Tripy 👋 Mau healing ke mana nih?'), findsOneWidget);
     await tester.tap(find.text('Wisata gratis apa saja?'));
     await tunggu(tester);
 
     expect(api.panggilan, 1);
     expect(find.text('Wisata gratis apa saja?'), findsOneWidget); // gelembung user
     expect(find.text('Ini jawabannya.'), findsOneWidget);
-    expect(find.text('Halo, aku Asisten TRIPIN 👋'), findsNothing);
+    expect(find.text('Halo, aku Tripy 👋 Mau healing ke mana nih?'), findsNothing);
   });
 
   testWidgets('mengetik lalu menekan Kirim; tombol Kirim nonaktif saat input kosong', (tester) async {

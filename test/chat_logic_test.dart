@@ -51,6 +51,12 @@ void main() {
       expect((parseSseLine('data: {"type":"error","message":"sibuk"}') as ChatError).message, 'sibuk');
     });
 
+    test('status: diurai dan dipangkas; status kosong diabaikan', () {
+      expect((parseSseLine('data: {"type":"status","text":" Nyusun rencana… "}') as ChatStatus).text, 'Nyusun rencana…');
+      expect(parseSseLine('data: {"type":"status","text":"  "}'), isNull);
+      expect(parseSseLine('data: {"type":"status"}'), isNull);
+    });
+
     test('mengabaikan ping, baris kosong, JSON rusak, dan tipe tak dikenal', () {
       expect(parseSseLine(': ping'), isNull);
       expect(parseSseLine(''), isNull);
@@ -129,6 +135,33 @@ void main() {
       expect(balasan.destinasiIds, ['d01', 'd02', 'd03']);
       expect(balasan.draft?.judul, 'Toba');
       expect(balasan.error, isNull);
+    });
+
+    test('status Tripy: awal lokal, diganti status backend, hilang saat teks mengalir dan saat selesai', () async {
+      final api = FakeChatApi([
+        const ChatStatus('Nyusun rencana…'),
+        const ChatDelta('Ini rencananya.'),
+        const ChatDone(),
+      ]);
+      final chat = ChatProvider(api: api)..gantiUser('u1');
+      await selesai();
+
+      final dilihat = <String?>[];
+      chat.addListener(() {
+        if (chat.messages.isNotEmpty && chat.messages.last.role == ChatRole.model) {
+          dilihat.add(chat.messages.last.status);
+        }
+      });
+      await chat.kirim('buatkan rencana', konteks: const {});
+      await selesai();
+
+      expect(dilihat.first, statusAwal);
+      expect(dilihat, contains('Nyusun rencana…'));
+      expect(dilihat.last, isNull);
+      expect(chat.messages.last.status, isNull);
+      expect(chat.messages.last.text, 'Ini rencananya.');
+      // Status bersifat sementara: tidak ikut tersimpan.
+      expect(chat.messages.last.toJson().containsKey('status'), isFalse);
     });
 
     test('konteks tidak memuat data pribadi dan berisi favorit + rencana', () async {

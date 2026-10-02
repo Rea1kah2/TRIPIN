@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/chat_message.dart';
+import '../models/review.dart';
 import '../models/rencana_perjalanan.dart';
 import '../models/user.dart';
 
@@ -11,6 +12,9 @@ class LocalStorageService {
   static const _keyRencana = 'tripin_rencana';
   static const _keyRencanaInitialized = 'tripin_rencana_initialized';
   static const _keyThemeMode = 'tripin_theme_mode';
+  static const _keyReview = 'tripin_reviews';
+  static const _keyGlassIntensity = 'tripin_glass_intensity';
+  static const _keyReduceTransparency = 'tripin_reduce_transparency';
 
   static String _keyChat(String userId) => 'tripin_chat_$userId';
 
@@ -43,6 +47,45 @@ class LocalStorageService {
   Future<void> simpanThemeMode(String mode) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(_keyThemeMode, mode);
+  }
+
+  Future<List<Review>> muatReview() async {
+    final prefs = await SharedPreferences.getInstance();
+    final raw = prefs.getString(_keyReview);
+    if (raw == null) return [];
+    try {
+      return [
+        for (final e in jsonDecode(raw) as List)
+          if (Review.tryFromJson(e) case final r?) r,
+      ];
+    } catch (_) {
+      return []; // data rusak: mulai baru, jangan crash
+    }
+  }
+
+  Future<void> simpanReview(List<Review> review) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_keyReview, jsonEncode(review.map((r) => r.toJson()).toList()));
+  }
+
+  Future<double?> muatGlassIntensity() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getDouble(_keyGlassIntensity);
+  }
+
+  Future<void> simpanGlassIntensity(double nilai) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setDouble(_keyGlassIntensity, nilai);
+  }
+
+  Future<bool> muatReduceTransparency() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getBool(_keyReduceTransparency) ?? false;
+  }
+
+  Future<void> simpanReduceTransparency(bool nilai) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(_keyReduceTransparency, nilai);
   }
 
   Future<List<User>> muatUser() async {

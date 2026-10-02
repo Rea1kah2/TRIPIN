@@ -14,6 +14,12 @@ class ChatDelta extends ChatEvent {
   const ChatDelta(this.text);
 }
 
+/// Status singkat langkah yang sedang dikerjakan Tripy (mis. "Tripy lagi nyari tempat…").
+class ChatStatus extends ChatEvent {
+  final String text;
+  const ChatStatus(this.text);
+}
+
 class ChatDestinasi extends ChatEvent {
   final List<String> ids;
   const ChatDestinasi(this.ids);
@@ -42,7 +48,7 @@ abstract class ChatApi {
 }
 
 const pesanTidakTerhubung =
-    'Tidak bisa terhubung ke asisten. Periksa koneksi internetmu lalu coba lagi.';
+    'Tripy nggak bisa dihubungi. Cek koneksi internetmu terus coba lagi ya.';
 
 class ChatService implements ChatApi {
   final String? _baseUrl;
@@ -66,8 +72,9 @@ class ChatService implements ChatApi {
   }) async* {
     // Satu client per permintaan: membatalkan subscription menutup koneksi.
     final client = http.Client();
+    final alamat = '${_baseUrl ?? AppConfig.apiBaseUrl}/api/chat';
     try {
-      final req = http.Request('POST', Uri.parse('${_baseUrl ?? AppConfig.apiBaseUrl}/api/chat'))
+      final req = http.Request('POST', Uri.parse(alamat))
         ..headers['content-type'] = 'application/json'
         ..headers['accept'] = 'text/event-stream'
         ..body = jsonEncode({
@@ -99,12 +106,12 @@ class ChatService implements ChatApi {
         if (event != null) yield event;
       }
     } on TimeoutException {
-      yield const ChatError('Asisten terlalu lama merespons. Coba lagi ya.');
+      yield const ChatError('Tripy kelamaan mikir. Coba lagi ya.');
     } on http.ClientException catch (e) {
-      debugPrint('ChatService: $e');
+      debugPrint('ChatService: gagal menghubungi $alamat ($e). Backend jalan? adb reverse terpasang?');
       yield const ChatError(pesanTidakTerhubung);
     } catch (e) {
-      debugPrint('ChatService: $e');
+      debugPrint('ChatService: gagal menghubungi $alamat ($e)');
       yield const ChatError(pesanTidakTerhubung);
     } finally {
       client.close();
@@ -128,6 +135,9 @@ ChatEvent? parseSseLine(String line) {
     case 'delta':
       final text = json['text'];
       return text is String && text.isNotEmpty ? ChatDelta(text) : null;
+    case 'status':
+      final text = json['text'];
+      return text is String && text.trim().isNotEmpty ? ChatStatus(text.trim()) : null;
     case 'destinasi':
       final ids = json['ids'];
       return ids is List ? ChatDestinasi(ids.whereType<String>().toList()) : null;
@@ -138,7 +148,7 @@ ChatEvent? parseSseLine(String line) {
       return const ChatDone();
     case 'error':
       final msg = json['message'];
-      return ChatError(msg is String && msg.isNotEmpty ? msg : 'Asisten sedang bermasalah.');
+      return ChatError(msg is String && msg.isNotEmpty ? msg : 'Tripy lagi bermasalah.');
   }
   return null;
 }
@@ -163,6 +173,6 @@ String pesanDariBodyError(int status, String body) {
     if (json is Map && json['error'] is String) return json['error'] as String;
   } catch (_) {}
   if (status == 429) return 'Terlalu banyak permintaan. Coba lagi sebentar ya.';
-  if (status == 401) return 'Aplikasi tidak diizinkan mengakses asisten.';
-  return 'Asisten sedang bermasalah (kode $status). Coba lagi nanti.';
+  if (status == 401) return 'Aplikasi tidak diizinkan mengakses Tripy.';
+  return 'Tripy lagi bermasalah (kode $status). Coba lagi nanti.';
 }

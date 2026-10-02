@@ -1,28 +1,16 @@
 import 'package:flutter/material.dart';
+import 'glass_alert.dart';
 
 Future<bool> showConfirmDeleteDialog(BuildContext context,
     {required String judul}) async {
-  final hasil = await showDialog<bool>(
-    context: context,
-    builder: (context) {
-      return AlertDialog(
-        title: const Text('Hapus?'),
-        content: Text('"$judul" akan dihapus permanen.'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('Batal'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: Text(
-              'Hapus',
-              style: TextStyle(color: Theme.of(context).colorScheme.error),
-            ),
-          ),
-        ],
-      );
-    },
+  final hasil = await showGlassAlert<bool>(
+    context,
+    judul: 'Hapus?',
+    pesan: '"$judul" akan dihapus permanen.',
+    aksi: const [
+      GlassAlertAksi(label: 'Batal', nilai: false, utama: true),
+      GlassAlertAksi(label: 'Hapus', nilai: true, destruktif: true),
+    ],
   );
   return hasil ?? false;
 }

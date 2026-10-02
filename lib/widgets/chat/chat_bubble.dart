@@ -7,7 +7,8 @@ import '../../theme/app_colors.dart';
 import '../../utils/mini_markdown.dart';
 import '../destinasi_card.dart';
 import 'rencana_draft_card.dart';
-import 'typing_indicator.dart';
+import '../glass_panel.dart';
+import 'assistant_status.dart';
 
 class ChatBubble extends StatelessWidget {
   final ChatMessage message;
@@ -34,20 +35,19 @@ class ChatBubble extends StatelessWidget {
       alignment: Alignment.centerRight,
       child: ConstrainedBox(
         constraints: BoxConstraints(maxWidth: MediaQuery.sizeOf(context).width * 0.8),
-        child: Container(
+        // Bubble pengguna = kaca bertint warna utama; ekor kecil di sudut kanan bawah.
+        child: GlassPanel(
+          accent: true,
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-          decoration: BoxDecoration(
-            color: colors.primary,
-            borderRadius: const BorderRadius.only(
-              topLeft: Radius.circular(18),
-              topRight: Radius.circular(18),
-              bottomLeft: Radius.circular(18),
-              bottomRight: Radius.circular(4),
-            ),
+          borderRadius: const BorderRadius.only(
+            topLeft: Radius.circular(20),
+            topRight: Radius.circular(20),
+            bottomLeft: Radius.circular(20),
+            bottomRight: Radius.circular(6),
           ),
           child: SelectableText(
             message.text,
-            style: TextStyle(color: colors.onPrimary, height: 1.35),
+            style: TextStyle(color: colors.onPrimary, height: 1.35, fontSize: 15),
           ),
         ),
       ),
@@ -71,27 +71,28 @@ class ChatBubble extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            if (adaTeks || menunggu)
+            if (menunggu)
+              AssistantStatus(teks: message.status ?? 'Tripy lagi mikir…')
+            else if (adaTeks)
+              // Balasan AI = permukaan solid (badan teks tidak dibuat kaca agar mudah dibaca).
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
                 decoration: BoxDecoration(
                   color: colors.surface,
                   border: Border.all(color: colors.outlineVariant),
                   borderRadius: const BorderRadius.only(
-                    topLeft: Radius.circular(18),
-                    topRight: Radius.circular(18),
-                    bottomLeft: Radius.circular(4),
-                    bottomRight: Radius.circular(18),
+                    topLeft: Radius.circular(20),
+                    topRight: Radius.circular(20),
+                    bottomLeft: Radius.circular(6),
+                    bottomRight: Radius.circular(20),
                   ),
                 ),
-                child: menunggu
-                    ? const TypingIndicator()
-                    : SelectableText.rich(
-                        miniMarkdown(
-                          message.text,
-                          TextStyle(color: colors.onSurface, height: 1.4),
-                        ),
-                      ),
+                child: SelectableText.rich(
+                  miniMarkdown(
+                    message.text,
+                    TextStyle(color: colors.onSurface, height: 1.4, fontSize: 15),
+                  ),
+                ),
               ),
             for (final d in kartu)
               Padding(
@@ -114,6 +115,12 @@ class ChatBubble extends StatelessWidget {
               Padding(
                 padding: const EdgeInsets.only(top: 8),
                 child: RencanaDraftCard(messageId: message.id, draft: message.draft!),
+              ),
+            // Balasan masih mengalir: tetap ada tanda Tripy bekerja sampai selesai.
+            if (sedangMengetik && !menunggu)
+              Padding(
+                padding: const EdgeInsets.only(top: 8),
+                child: AssistantStatus(teks: message.status ?? 'Menulis…', kecil: true),
               ),
             if (message.error != null)
               Padding(
