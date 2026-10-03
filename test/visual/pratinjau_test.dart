@@ -28,6 +28,8 @@ import 'package:tugas_kelompok/screens/home/home_screen.dart';
 import 'package:tugas_kelompok/screens/profil/profil_screen.dart';
 import 'package:tugas_kelompok/widgets/glass_insets.dart';
 import 'package:tugas_kelompok/screens/peta/peta_screen.dart';
+import 'package:tugas_kelompok/screens/rencana/detail_rencana_screen.dart';
+import 'package:tugas_kelompok/screens/rencana/peta_rencana_screen.dart';
 import 'package:tugas_kelompok/services/location_service.dart';
 import '../lokasi_test.dart' show FakeLokasi;
 import 'package:tugas_kelompok/widgets/app_snackbar.dart';
@@ -380,6 +382,74 @@ void main() {
         await tester.pump(const Duration(milliseconds: 100));
       }
       await simpan('peta_pratinjau');
+    }, skip: _dir == null);
+  }
+
+  // --- Rencana: peta rute dan detail dengan urut ulang ---
+  for (final gelap in [false, true]) {
+    testWidgets('rencana ${gelap ? 'gelap' : 'terang'}', (tester) async {
+      SharedPreferences.setMockInitialValues({});
+      tester.view.physicalSize = const Size(800, 1700);
+      tester.view.devicePixelRatio = 2;
+      addTearDown(tester.view.reset);
+      final destinasi = DestinasiProvider();
+      await destinasi.muatData();
+      final rencana = RencanaProvider();
+      await rencana.muatData();
+      rencana.tambahRencana(RencanaPerjalanan(
+        id: 'rx',
+        judul: 'Liburan Akhir Pekan ke Danau Toba',
+        tanggalMulai: DateTime(2026, 10, 3),
+        tanggalSelesai: DateTime(2026, 10, 5),
+        daftarDestinasiId: const ['d05', 'd01', 'd08', 'd15'],
+        catatan: 'Trip bareng 2 teman.',
+      ));
+      final lokasi = LokasiProvider(
+        service: FakeLokasi(cek: IzinLokasi.diizinkan, posisi: const Posisi(3.5952, 98.6722, akurasiMeter: 400)),
+      );
+      final kunci = GlobalKey();
+      final navigator = GlobalKey<NavigatorState>();
+      await tester.pumpWidget(MultiProvider(
+        providers: [
+          ChangeNotifierProvider.value(value: destinasi),
+          ChangeNotifierProvider.value(value: rencana),
+          ChangeNotifierProvider.value(value: lokasi),
+          ChangeNotifierProvider(create: (_) => ReviewProvider()),
+        ],
+        child: RepaintBoundary(
+          key: kunci,
+          child: MaterialApp(
+            navigatorKey: navigator,
+            debugShowCheckedModeBanner: false,
+            theme: gelap ? buildDarkTheme() : buildLightTheme(),
+            onGenerateRoute: AppRoutes.onGenerateRoute,
+            home: const DetailRencanaScreen(rencanaId: 'rx'),
+          ),
+        ),
+      ));
+      for (var i = 0; i < 6; i++) {
+        await tester.pump(const Duration(milliseconds: 100));
+      }
+      Future<void> simpan(String nama) => tester.runAsync(() async {
+            final boundary = kunci.currentContext!.findRenderObject() as RenderRepaintBoundary;
+            final image = await boundary.toImage(pixelRatio: 1);
+            final bytes = await image.toByteData(format: ui.ImageByteFormat.png);
+            final f = File('$_dir/${nama}_${gelap ? 'gelap' : 'terang'}.png');
+            f.parent.createSync(recursive: true);
+            f.writeAsBytesSync(bytes!.buffer.asUint8List());
+          });
+      await simpan('rencana_detail');
+      navigator.currentState!.push(MaterialPageRoute<void>(
+        builder: (_) => PetaRencanaScreen(
+          judul: 'Liburan Akhir Pekan ke Danau Toba',
+          daftar: [for (final id in rencana.getById('rx')!.daftarDestinasiId) destinasi.getById(id)!],
+          tileProvider: _TileKosongPratinjau(),
+        ),
+      ));
+      for (var i = 0; i < 10; i++) {
+        await tester.pump(const Duration(milliseconds: 100));
+      }
+      await simpan('rencana_peta');
     }, skip: _dir == null);
   }
 }

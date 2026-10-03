@@ -4,7 +4,6 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_map_marker_cluster/flutter_map_marker_cluster.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:provider/provider.dart';
-import 'package:url_launcher/url_launcher.dart';
 import '../../models/destinasi.dart';
 import '../../providers/destinasi_provider.dart';
 import '../../providers/lokasi_provider.dart';
@@ -26,10 +25,10 @@ import '../../widgets/glass_panel.dart';
 import '../../widgets/glass_scaffold.dart';
 import '../../widgets/glass_sheet.dart';
 import '../../widgets/pressable_scale.dart';
+import '../../widgets/peta/komponen_peta.dart';
 import '../../widgets/rating_stars.dart';
 
 const _radiusPilihan = <double?>[null, 10, 25, 50, 100];
-const _biru = Color(0xFF2F80ED);
 
 /// Peta wisata Sumatera Utara: semua destinasi, posisi pengguna, filter kategori & radius,
 /// pratinjau tempat, dan tombol rute. [aktif] = tab Peta sedang terlihat (pelacakan GPS
@@ -139,7 +138,7 @@ class _PetaScreenState extends State<PetaScreen> {
             point: LatLng(d.lat, d.lng),
             width: 44,
             height: 44,
-            child: _Penanda(destinasi: d, dipilih: false, onTap: () => _pilih(d)),
+            child: Penanda(destinasi: d, dipilih: false, onTap: () => _pilih(d)),
           ),
       ];
     }
@@ -201,12 +200,7 @@ class _PetaScreenState extends State<PetaScreen> {
                   onTap: (_, __) => setState(() => _terpilih = null),
                 ),
                 children: [
-                  TileLayer(
-                    urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-                    userAgentPackageName: 'com.example.tugas_kelompok',
-                    tileProvider: widget.tileProvider,
-                    tileBuilder: gelap ? darkModeTileBuilder : null,
-                  ),
+                  lapisanUbinOsm(gelap: gelap, tileProvider: widget.tileProvider),
                   if (p != null && _radiusKm != null)
                     CircleLayer(circles: [
                       CircleMarker(
@@ -224,8 +218,8 @@ class _PetaScreenState extends State<PetaScreen> {
                         point: LatLng(p.lat, p.lng),
                         radius: p.akurasiMeter,
                         useRadiusInMeter: true,
-                        color: _biru.withOpacity(0.15),
-                        borderColor: _biru.withOpacity(0.4),
+                        color: biruPosisi.withOpacity(0.15),
+                        borderColor: biruPosisi.withOpacity(0.4),
                         borderStrokeWidth: 1,
                       ),
                     ]),
@@ -254,14 +248,14 @@ class _PetaScreenState extends State<PetaScreen> {
                           point: LatLng(_terpilih!.lat, _terpilih!.lng),
                           width: 56,
                           height: 56,
-                          child: _Penanda(destinasi: _terpilih!, dipilih: true, onTap: () {}),
+                          child: Penanda(destinasi: _terpilih!, dipilih: true, onTap: () {}),
                         ),
                       if (p != null)
                         Marker(
                           point: LatLng(p.lat, p.lng),
                           width: 26,
                           height: 26,
-                          child: const _TitikPengguna(),
+                          child: const TitikPengguna(),
                         ),
                     ],
                   ),
@@ -308,7 +302,7 @@ class _PetaScreenState extends State<PetaScreen> {
             Positioned(
               left: 10,
               bottom: inset + (_terpilih == null ? 6 : 6),
-              child: _Atribusi(tersembunyi: _terpilih != null),
+              child: AtribusiOsm(tersembunyi: _terpilih != null),
             ),
             // Tombol kanan bawah + pratinjau.
             Positioned(
@@ -319,13 +313,13 @@ class _PetaScreenState extends State<PetaScreen> {
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
-                  _TombolBulat(
+                  TombolBulat(
                     tooltip: 'Daftar terdekat',
                     ikon: Icons.format_list_bulleted,
                     onTap: () => _bukaDaftarTerdekat(terlihat),
                   ),
                   const SizedBox(height: 10),
-                  _TombolBulat(
+                  TombolBulat(
                     tooltip: 'Ke lokasiku',
                     ikon: lokasi.sedangMencari ? Icons.hourglass_top : Icons.my_location,
                     onTap: _keLokasiku,
@@ -426,45 +420,6 @@ class _ChipPeta extends StatelessWidget {
   }
 }
 
-class _Penanda extends StatelessWidget {
-  final Destinasi destinasi;
-  final bool dipilih;
-  final VoidCallback onTap;
-
-  const _Penanda({required this.destinasi, required this.dipilih, required this.onTap});
-
-  @override
-  Widget build(BuildContext context) {
-    final b = Theme.of(context).brightness;
-    final warna = warnaKategori(destinasi.kategoriId, b);
-    final kategori = context.read<DestinasiProvider>().daftarKategori.where((k) => k.id == destinasi.kategoriId);
-    final ikon = kategori.isEmpty ? Icons.place : kategori.first.icon;
-    final ukuran = dipilih ? 46.0 : 34.0;
-    return Semantics(
-      button: true,
-      label: destinasi.name,
-      child: GestureDetector(
-        behavior: HitTestBehavior.opaque,
-        onTap: onTap,
-        child: Center(
-          child: AnimatedContainer(
-            duration: const Duration(milliseconds: 180),
-            width: ukuran,
-            height: ukuran,
-            decoration: BoxDecoration(
-              color: warna,
-              shape: BoxShape.circle,
-              border: Border.all(color: Colors.white, width: dipilih ? 3 : 2),
-              boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.3), blurRadius: dipilih ? 10 : 5, offset: const Offset(0, 2))],
-            ),
-            child: Icon(ikon, size: dipilih ? 24 : 18, color: b == Brightness.dark ? const Color(0xFF10201A) : Colors.white),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
 /// Gugus penanda berdekatan: lingkaran warna utama dengan jumlah tempat.
 class _Gugus extends StatelessWidget {
   final int jumlah;
@@ -491,52 +446,6 @@ class _Gugus extends StatelessWidget {
             fontSize: 15,
             color: gelap ? const Color(0xFF10201A) : Colors.white,
           ),
-        ),
-      ),
-    );
-  }
-}
-
-class _TitikPengguna extends StatelessWidget {
-  const _TitikPengguna();
-
-  @override
-  Widget build(BuildContext context) {
-    return Semantics(
-      label: 'Posisimu sekarang',
-      child: Container(
-        decoration: BoxDecoration(
-          color: _biru,
-          shape: BoxShape.circle,
-          border: Border.all(color: Colors.white, width: 3),
-          boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.35), blurRadius: 6)],
-        ),
-      ),
-    );
-  }
-}
-
-class _TombolBulat extends StatelessWidget {
-  final String tooltip;
-  final IconData ikon;
-  final VoidCallback onTap;
-
-  const _TombolBulat({required this.tooltip, required this.ikon, required this.onTap});
-
-  @override
-  Widget build(BuildContext context) {
-    return Semantics(
-      button: true,
-      label: tooltip,
-      child: PressableScale(
-        onTap: onTap,
-        skala: 0.94,
-        child: GlassPanel(
-          radius: 26,
-          blur: true,
-          bias: 0.25,
-          padding: EdgeInsets.zero,
-          child: SizedBox(width: 52, height: 52, child: Icon(ikon, color: context.colors.primary)),
         ),
       ),
     );
@@ -572,28 +481,6 @@ class _BannerIzin extends StatelessWidget {
             ),
           ],
         ),
-      ),
-    );
-  }
-}
-
-class _Atribusi extends StatelessWidget {
-  final bool tersembunyi;
-
-  const _Atribusi({required this.tersembunyi});
-
-  @override
-  Widget build(BuildContext context) {
-    if (tersembunyi) return const SizedBox.shrink();
-    return GestureDetector(
-      onTap: () => launchUrl(Uri.parse('https://www.openstreetmap.org/copyright'), mode: LaunchMode.externalApplication),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-        decoration: BoxDecoration(
-          color: Colors.white.withOpacity(0.75),
-          borderRadius: BorderRadius.circular(6),
-        ),
-        child: const Text('© OpenStreetMap', style: TextStyle(fontSize: 10, color: Colors.black87)),
       ),
     );
   }
