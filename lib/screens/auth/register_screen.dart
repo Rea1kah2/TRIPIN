@@ -35,14 +35,19 @@ class _RegisterPageState extends State<RegisterPage> {
     super.dispose();
   }
 
-  void register() {
-    if (!_formKey.currentState!.validate()) return;
+  bool _memproses = false;
 
-    final error = context.read<AuthProvider>().register(
+  Future<void> register() async {
+    if (_memproses || !_formKey.currentState!.validate()) return;
+
+    setState(() => _memproses = true);
+    final error = await context.read<AuthProvider>().register(
           nameController.text.trim(),
           emailController.text.trim(),
           passwordController.text,
         );
+    if (!mounted) return;
+    setState(() => _memproses = false);
 
     if (error != null) {
       showAppSnackbar(context, error, isError: true);
@@ -214,8 +219,8 @@ class _RegisterPageState extends State<RegisterPage> {
                           const SizedBox(height: 28),
 
                           GlassButton(
-                            label: 'Daftar',
-                            onPressed: register,
+                            label: _memproses ? 'Memproses…' : 'Daftar',
+                            onPressed: _memproses ? null : register,
                             variant: GlassButtonVariant.prominent,
                             besar: true,
                             melebar: true,
