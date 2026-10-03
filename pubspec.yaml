@@ -43,6 +43,7 @@ dependencies:
   geolocator: ^13.0.4
   url_launcher: ^6.3.1
   crypto: ^3.0.7
+  flutter_map_marker_cluster: ^1.4.0
 
 # geolocator_android 4.6.2 memakai `flutter.compileSdkVersion` di Gradle perpustakaannya, yang
 # baru ada di Flutter >= 3.27. Pasang 4.6.1 selama proyek ini masih di Flutter 3.24.

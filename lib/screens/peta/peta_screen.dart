@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
+import 'package:flutter_map_marker_cluster/flutter_map_marker_cluster.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -39,7 +40,10 @@ class PetaScreen extends StatefulWidget {
   /// Untuk tes: ganti pemuat ubin jaringan.
   final TileProvider? tileProvider;
 
-  const PetaScreen({super.key, this.aktif = true, this.tileProvider});
+  /// Kelompokkan penanda yang berdekatan menjadi gugus berangka.
+  final bool klaster;
+
+  const PetaScreen({super.key, this.aktif = true, this.tileProvider, this.klaster = true});
 
   @override
   State<PetaScreen> createState() => _PetaScreenState();
@@ -53,6 +57,11 @@ class _PetaScreenState extends State<PetaScreen> {
   Destinasi? _terpilih;
   bool _petaSiap = false;
   bool _sudahMemusat = false;
+
+  // Daftar penanda di-cache: gugus dihitung ulang hanya saat isi/tema berubah, bukan tiap
+  // pembaruan GPS atau pemilihan tempat.
+  List<Marker> _penandaCache = const [];
+  String _kunciCache = '';
 
   @override
   void initState() {
@@ -118,6 +127,23 @@ class _PetaScreenState extends State<PetaScreen> {
       }
       return true;
     }).toList();
+  }
+
+  List<Marker> _penandaTempat(List<Destinasi> terlihat, Brightness tema) {
+    final kunci = '${tema.name}|${terlihat.map((d) => d.id).join(',')}';
+    if (kunci != _kunciCache) {
+      _kunciCache = kunci;
+      _penandaCache = [
+        for (final d in terlihat)
+          Marker(
+            point: LatLng(d.lat, d.lng),
+            width: 44,
+            height: 44,
+            child: _Penanda(destinasi: d, dipilih: false, onTap: () => _pilih(d)),
+          ),
+      ];
+    }
+    return _penandaCache;
   }
 
   Future<void> _rute(Destinasi d) async {
@@ -203,16 +229,26 @@ class _PetaScreenState extends State<PetaScreen> {
                         borderStrokeWidth: 1,
                       ),
                     ]),
+                  if (widget.klaster)
+                    MarkerClusterLayerWidget(
+                      options: MarkerClusterLayerOptions(
+                        markers: _penandaTempat(terlihat, Theme.of(context).brightness),
+                        maxClusterRadius: 52,
+                        size: const Size(44, 44),
+                        alignment: Alignment.center,
+                        disableClusteringAtZoom: 13,
+                        zoomToBoundsOnClick: true,
+                        centerMarkerOnClick: false,
+                        spiderfyCluster: false,
+                        padding: const EdgeInsets.all(60),
+                        builder: (context, markers) => _Gugus(jumlah: markers.length),
+                      ),
+                    )
+                  else
+                    MarkerLayer(markers: _penandaTempat(terlihat, Theme.of(context).brightness)),
+                  // Penanda terpilih dan titik pengguna di lapisan sendiri agar selalu terlihat.
                   MarkerLayer(
                     markers: [
-                      for (final d in terlihat)
-                        if (d.id != _terpilih?.id)
-                          Marker(
-                            point: LatLng(d.lat, d.lng),
-                            width: 44,
-                            height: 44,
-                            child: _Penanda(destinasi: d, dipilih: false, onTap: () => _pilih(d)),
-                          ),
                       if (_terpilih != null)
                         Marker(
                           point: LatLng(_terpilih!.lat, _terpilih!.lng),
@@ -422,6 +458,38 @@ class _Penanda extends StatelessWidget {
               boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.3), blurRadius: dipilih ? 10 : 5, offset: const Offset(0, 2))],
             ),
             child: Icon(ikon, size: dipilih ? 24 : 18, color: b == Brightness.dark ? const Color(0xFF10201A) : Colors.white),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Gugus penanda berdekatan: lingkaran warna utama dengan jumlah tempat.
+class _Gugus extends StatelessWidget {
+  final int jumlah;
+  const _Gugus({required this.jumlah});
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = context.colors;
+    final gelap = Theme.of(context).brightness == Brightness.dark;
+    return Semantics(
+      label: '$jumlah tempat berdekatan, ketuk untuk memperbesar',
+      child: Container(
+        decoration: BoxDecoration(
+          color: scheme.primary,
+          shape: BoxShape.circle,
+          border: Border.all(color: Colors.white, width: 3),
+          boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.3), blurRadius: 6, offset: const Offset(0, 2))],
+        ),
+        alignment: Alignment.center,
+        child: Text(
+          '$jumlah',
+          style: TextStyle(
+            fontWeight: FontWeight.w700,
+            fontSize: 15,
+            color: gelap ? const Color(0xFF10201A) : Colors.white,
           ),
         ),
       ),
