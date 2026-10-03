@@ -31,13 +31,18 @@ class _LoginPageState extends State<LoginPage> {
     super.dispose();
   }
 
-  void login() {
-    if (!_formKey.currentState!.validate()) return;
+  bool _memproses = false;
 
-    final error = context.read<AuthProvider>().login(
+  Future<void> login() async {
+    if (_memproses || !_formKey.currentState!.validate()) return;
+
+    setState(() => _memproses = true);
+    final error = await context.read<AuthProvider>().login(
           emailController.text.trim(),
           passwordController.text,
         );
+    if (!mounted) return;
+    setState(() => _memproses = false);
 
     if (error != null) {
       showAppSnackbar(context, error, isError: true);
@@ -199,8 +204,8 @@ class _LoginPageState extends State<LoginPage> {
 
                 // Tombol masuk
                 GlassButton(
-                  label: 'Masuk',
-                  onPressed: login,
+                  label: _memproses ? 'Memproses…' : 'Masuk',
+                  onPressed: _memproses ? null : login,
                   variant: GlassButtonVariant.prominent,
                   besar: true,
                   melebar: true,

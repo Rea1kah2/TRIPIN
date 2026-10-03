@@ -7,6 +7,7 @@ import 'package:tugas_kelompok/models/review.dart';
 import 'package:tugas_kelompok/providers/auth_provider.dart';
 import 'package:tugas_kelompok/providers/destinasi_provider.dart';
 import 'package:tugas_kelompok/providers/review_provider.dart';
+import 'package:tugas_kelompok/services/password_hasher.dart';
 import 'package:tugas_kelompok/services/review_repository.dart';
 import 'package:tugas_kelompok/theme/app_theme.dart';
 import 'package:tugas_kelompok/widgets/review/rating_picker.dart';
@@ -143,11 +144,11 @@ void main() {
       final destinasi = DestinasiProvider();
       await destinasi.muatData();
       final review = await baru();
-      final auth = AuthProvider();
+      final auth = AuthProvider(hasher: const PasswordHasher(pakaiIsolate: false, iterasi: 4));
       await auth.muatData();
       if (masuk) {
-        auth.register('Ari Test', 'ari@test.id', 'rahasia1');
-        auth.login('ari@test.id', 'rahasia1');
+        await auth.register('Ari Test', 'ari@test.id', 'rahasia1');
+        await auth.login('ari@test.id', 'rahasia1');
       }
       await tester.pumpWidget(MultiProvider(
         providers: [
