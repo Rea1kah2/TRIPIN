@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:tugas_kelompok/models/user.dart';
 import 'package:tugas_kelompok/providers/auth_provider.dart';
+import 'package:tugas_kelompok/services/auth_repository.dart';
 import 'package:tugas_kelompok/services/password_hasher.dart';
 
 const _cepat = PasswordHasher(pakaiIsolate: false, iterasi: 4);
@@ -168,4 +169,64 @@ void main() {
     expect(u.passwordLama, 'rahasia');
     expect(u.toJson().containsKey('password'), isFalse);
   });
+
+  group('AuthProvider dengan repository lain (calon Firebase)', () {
+    test('mendelegasikan pemulihan sesi, daftar, masuk, dan keluar', () async {
+      final repo = _RepoPalsu();
+      final auth = AuthProvider(repository: repo);
+      var diberitahu = 0;
+      auth.addListener(() => diberitahu++);
+
+      await auth.muatData();
+      expect(auth.isLoading, isFalse);
+      expect(auth.isLoggedIn, isFalse);
+
+      expect(await auth.register('Budi', 'budi@x.id', 'pw12345'), isNull);
+      expect(await auth.register('Budi', 'budi@x.id', 'pw12345'), 'Email sudah terdaftar');
+
+      expect(await auth.login('budi@x.id', 'salah'), 'Email atau password salah');
+      expect(auth.isLoggedIn, isFalse);
+      expect(await auth.login('budi@x.id', 'pw12345'), isNull);
+      expect(auth.currentUser!.email, 'budi@x.id');
+
+      auth.logout();
+      expect(auth.isLoggedIn, isFalse);
+      expect(repo.keluarDipanggil, 1);
+      expect(diberitahu, greaterThanOrEqualTo(3));
+    });
+
+    test('sesi dari repository dipulihkan saat muatData', () async {
+      final repo = _RepoPalsu(sesi: const User(id: 'u9', nama: 'Sari', email: 's@x.id', passwordHash: ''));
+      final auth = AuthProvider(repository: repo);
+      await auth.muatData();
+      expect(auth.currentUser!.id, 'u9');
+    });
+  });
+}
+
+class _RepoPalsu implements AuthRepository {
+  final User? sesi;
+  final _akun = <String, String>{};
+  int keluarDipanggil = 0;
+
+  _RepoPalsu({this.sesi});
+
+  @override
+  Future<User?> pulihkanSesi() async => sesi;
+
+  @override
+  Future<String?> daftar(String nama, String email, String password) async {
+    if (_akun.containsKey(email)) return 'Email sudah terdaftar';
+    _akun[email] = password;
+    return null;
+  }
+
+  @override
+  Future<HasilMasuk> masuk(String email, String password) async {
+    if (_akun[email] != password) return const HasilMasuk.gagal('Email atau password salah');
+    return HasilMasuk.berhasil(User(id: 'u1', nama: 'Budi', email: email, passwordHash: ''));
+  }
+
+  @override
+  Future<void> keluar() async => keluarDipanggil++;
 }
