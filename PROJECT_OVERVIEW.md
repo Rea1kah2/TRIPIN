@@ -56,6 +56,8 @@ TRIPIN/
 | `flutter_map` | ^7.0.2 | Peta (OpenStreetMap, tanpa API key) |
 | `latlong2` | ^0.9.1 | Tipe koordinat untuk flutter_map |
 | `geolocator` | ^13.0.4 | Izin dan posisi GPS |
+| `flutter_map_marker_cluster` | ^1.4.0 | Gugus penanda berangka di Peta |
+| `crypto` | ^3.0.6 | PBKDF2-HMAC-SHA256 untuk password akun lokal |
 | `url_launcher` | ^6.3.1 | Membuka rute di Google Maps dan tautan atribusi |
 | `cupertino_icons` | ^1.0.8 | Ikon |
 | `flutter_lints` (dev) | ^5.0.0 | Aturan lint |
@@ -109,11 +111,11 @@ lib/
 ├── data/                     Data dummy: 32 destinasi, 5 kategori, rencana contoh
 ├── providers/                Auth, Destinasi, Rencana, Theme, Chat, Review, Lokasi
 ├── services/                 chat_service (SSE), local_storage, location_service,
-│                             review_repository, rute, kredit_foto
+│                             review_repository, rute (rute 1 tempat & rencana), kredit_foto, password_hasher
 ├── routes/app_routes.dart    Rute bernama
 ├── screens/                  app_gate, auth, home, destinasi, peta, chat, rencana, profil
 ├── theme/                    Warna, tema Material, GlassTheme, motion, radius, tipografi
-├── utils/                    formatters, geo (Haversine), mini_markdown
+├── utils/                    formatters, geo (Haversine, panjangRuteKm), mini_markdown
 └── widgets/                  Komponen Liquid Glass + kartu + review + chat
 ```
 
@@ -139,7 +141,7 @@ rencana, ulasan, kredit foto) di-push lewat rute bernama atau `MaterialPageRoute
 
 ### 3.4 Penyimpanan lokal (`shared_preferences`)
 
-Kunci: `tripin_users`, `tripin_session_user_id`, `tripin_favorit_ids`, `tripin_rencana`,
+Kunci: `tripin_users` (password berupa hash PBKDF2), `tripin_session_user_id`, `tripin_favorit_ids`, `tripin_rencana`,
 `tripin_chat_<userId>`, `tripin_reviews`, `tripin_theme_mode`, `tripin_glass_intensity`,
 `tripin_reduce_transparency`. Data rusak dibaca aman (dilewati, tidak crash).
 
@@ -152,12 +154,13 @@ Kunci: `tripin_users`, `tripin_session_user_id`, `tripin_favorit_ids`, `tripin_r
 | **Login / Daftar** | Validasi form, satu kartu kaca di tengah, toast untuk galat |
 | **Beranda** | Sapaan, pencarian kapsul, banner (foto Danau Toba), kartu sorotan "Tanya Tripy", filter kategori, rail rekomendasi, "Wisata di Sekitar Kamu" dengan jarak nyata (atau ajakan mengaktifkan lokasi) |
 | **Jelajah** | Daftar semua destinasi, pencarian, filter, keadaan kosong dengan aksi "Hapus filter" |
-| **Peta** | OpenStreetMap, penanda per kategori, titik posisi + lingkaran akurasi, filter kategori dan radius (10/25/50/100 km), pratinjau tempat (Detail, Rute), daftar Terdekat, tombol ke lokasiku, banner izin |
+| **Peta** | OpenStreetMap, penanda per kategori **dikelompokkan menjadi gugus berangka** (urai di zoom 13), titik posisi + lingkaran akurasi, filter kategori dan radius (10/25/50/100 km), pratinjau tempat (Detail, Rute), daftar Terdekat, tombol ke lokasiku, banner izin |
 | **Tripy (Chat)** | Chat streaming, kartu destinasi di jawaban, kartu draf rencana (Simpan sebagai rencana), indikator status, saran awal, hapus percakapan |
 | **Detail destinasi** | Foto, kartu info kaca, deskripsi, **ulasan** (ringkasan, tulis/ubah/hapus, daftar), Tambah ke Rencana, Tanya Tripy, kredit foto |
 | **Ulasan** | Bintang 1-5 wajib, komentar opsional (maks. 500 karakter), satu ulasan per pengguna per tempat, rating tampil dicampur nilai dasar (bobot 10 suara) |
 | **Favorit** | Daftar favorit (dari Profil) |
-| **Rencana** | Daftar, tambah, detail/edit, hapus dengan konfirmasi, tambah destinasi lewat sheet kaca |
+| **Rencana** | Daftar, tambah, detail/edit, hapus dengan konfirmasi, tambah destinasi lewat sheet kaca. Detail: **urut ulang destinasi dengan seret**, jarak garis lurus antar tempat, ketuk membuka Detail |
+| **Peta Rencana** | Dari Detail Rencana ("Lihat di peta"): penanda bernomor sesuai urutan, garis putus-putus antar titik, total jarak (garis lurus, diberi label jujur), jarak dari posisimu ke perhentian 1, daftar perhentian, tombol **Buka rute di Google Maps** (maks. 10 perhentian; sisanya diberi tahu) |
 | **Profil** | Data akun, grup Tampilan (mode tema, slider Transparansi kaca dengan pratinjau, toggle Kurangi transparansi), menu Rencana/Favorit/Kredit Foto, Keluar |
 
 ---
@@ -298,13 +301,17 @@ persistensi lokal; **backend chatbot Tripy** (Fastify + Gemini); dark mode + lay
 | **7. Foto destinasi asli** | Foto Commons dibundel untuk 29 tempat + banner; layar Kredit Foto; keterangan fotografer di Detail |
 | **8. Review (bintang + komentar)** | Dibangun dari nol (sebelumnya tidak ada). Tanpa unggah foto (keputusan: terlalu berat untuk tahap ini). Repositori lokal yang bisa diganti Firestore |
 | **9. Maps Sumatera Utara** | Peta OSM, posisi live, filter, pratinjau, rute, jarak nyata di seluruh app dan di Tripy; 12 destinasi baru; tab Favorit dipindah ke Profil |
+| **10. Password aman** | PBKDF2-HMAC-SHA256 + garam acak (10.000 iterasi, di isolate), migrasi otomatis akun lama, email dinormalisasi, kunci 30 detik per email setelah 5 kali gagal |
+| **11. Galeri foto** | Hingga 3 foto per tempat (geser, indikator, penampil layar penuh dengan zoom, kredit per foto). Skrip `scripts/ambil_foto_commons.py` menerima banyak rujukan |
+| **12. Clustering Peta** | `flutter_map_marker_cluster`; gugus di-cache agar tidak dihitung ulang tiap update GPS; penanda terpilih dan titik pengguna di lapisan sendiri |
+| **13. Rencana terhubung ke Peta** | `PetaRencanaScreen`, urut ulang (`RencanaProvider.urutUlangDestinasi`), `rancangRuteRencana`/`bukaRuteRencana`, `panjangRuteKm`; komponen peta bersama di `widgets/peta/komponen_peta.dart` |
 
 ### Pengujian
 
-- **Flutter:** 101 tes lolos (+16 tes pratinjau visual yang dilewati kecuali `PRATINJAU_DIR` diisi).
+- **Flutter:** 140 tes lolos (+18 tes pratinjau visual yang dilewati kecuali `PRATINJAU_DIR` diisi).
 - **Backend:** 65 tes lolos, `tsc --noEmit` bersih.
 - `flutter analyze` bersih. APK debug berhasil dibangun (Android).
-- Seluruh fitur diuji manual di HP asli oleh pemilik proyek.
+- Fitur sampai tahap 9 diuji manual di HP asli oleh pemilik proyek; tahap 10-13 baru lolos tes otomatis dan pratinjau render, **belum dicoba di HP**.
 
 ---
 
@@ -312,16 +319,15 @@ persistensi lokal; **backend chatbot Tripy** (Fastify + Gemini); dark mode + lay
 
 | Hal | Status / catatan |
 |---|---|
-| **Akun masih lokal** | Akun disimpan di `shared_preferences` dan **password tersimpan polos**. Data hilang bila aplikasi di-uninstall. Rencana: Firebase Auth (Email/Password) + Firestore. Butuh proyek Firebase dan `google-services.json` dari pemilik repo, `minSdk 23`. |
+| **Akun masih lokal** | Akun disimpan di `shared_preferences` (password sudah di-hash, bukan lagi polos). Data hilang bila aplikasi di-uninstall. Rencana: Firebase Auth (Email/Password) + Firestore. Butuh proyek Firebase dan `google-services.json` dari pemilik repo, `minSdk 23`. |
 | **Ulasan masih lokal** | Hanya terlihat di perangkat itu. `ReviewRepository` sudah disiapkan agar implementasi Firestore tinggal menggantikan `LocalReviewRepository`. |
 | **Favorit, rencana, chat** | Lokal per perangkat |
 | **Backend harus dijalankan manual** | `cd backend && npm run dev`. Belum ada deploy; HP harus sampai ke laptop (`adb reverse` atau IP LAN). Untuk dipakai di luar jaringan lokal perlu di-host (Render/Railway) dan `TRUST_PROXY=true`. |
-| **Galeri 3 foto per tempat** | Belum; sekarang 1 foto per tempat |
-| **3 tempat tanpa foto** | d16, d17, d23 |
 | **Koordinat perlu verifikasi** | Lihat daftar titik perkiraan di bagian 7 |
 | **iOS** | Izin lokasi di `Info.plist` sudah ditambahkan, tetapi belum pernah dibangun/diuji |
 | **Ubin peta** | Server OSM publik; pertimbangkan penyedia ubin sendiri bila dipakai luas |
-| **Marker menumpuk di pusat Medan** saat zoom jauh | Belum ada clustering |
+| **Garis Peta Rencana lurus** | Bukan rute jalan; rute jalan lewat Google Maps. Rute di dalam aplikasi butuh layanan routing (OSRM/ORS) |
+| **Integrasi dengan `master` tim** | Master (kerja Nazwa) butuh Flutter >= 3.44 dan Gradle 8.x; Mac pengembang tertahan di Flutter 3.24.1 (macOS 12). Cabang `merge/master-ke-tripy` (lokal) sudah menggabungkan keduanya, tetapi tidak cocok dengan Flutter 3.24.1. Sementara itu progres dikumpulkan di repo `Rea1kah2/tripin-new` (cabang `main`, kompatibel Flutter 3.24.1). Layar `PencarianRekomendasi` buatan Nazwa hanya ada di cabang merge |
 | **Upgrade Flutter** | Setelah Flutter >= 3.27: hapus override `geolocator_android`, naikkan `geolocator`, tinjau AGP |
 
 ---
