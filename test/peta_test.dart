@@ -31,6 +31,7 @@ Future<LokasiProvider> pasang(
   required FakeLokasi lokasi,
   bool aktif = true,
   bool gelap = false,
+  bool klaster = false,
 }) async {
   SharedPreferences.setMockInitialValues({});
   tester.view.physicalSize = const Size(800, 1700);
@@ -48,12 +49,19 @@ Future<LokasiProvider> pasang(
     child: MaterialApp(
       theme: gelap ? buildDarkTheme() : buildLightTheme(),
       onGenerateRoute: AppRoutes.onGenerateRoute,
-      home: GlassInsets(bawah: 76, child: PetaScreen(aktif: aktif, tileProvider: _TileKosong())),
+      home: GlassInsets(bawah: 76, child: PetaScreen(aktif: aktif, tileProvider: _TileKosong(), klaster: klaster)),
     ),
   ));
   await tester.pump(const Duration(milliseconds: 300));
   return lp;
 }
+
+final _gugus = find.byWidgetPredicate((w) => w is Semantics && (w.properties.label ?? '').contains('tempat berdekatan'));
+
+int _jumlahGugus(WidgetTester tester) => tester
+    .widgetList<Semantics>(_gugus)
+    .map((w) => int.parse(RegExp(r'^(\d+)').firstMatch(w.properties.label!)!.group(1)!))
+    .fold(0, (a, b) => a + b);
 
 void main() {
   testWidgets('menampilkan penanda destinasi dan chip filter kategori', (tester) async {
@@ -152,5 +160,47 @@ void main() {
     await pasang(tester, lokasi: FakeLokasi(), gelap: true);
     expect(tester.takeException(), isNull);
     expect(find.byType(FlutterMap), findsOneWidget);
+  });
+
+  testWidgets('klaster: tempat berdekatan di zoom awal digabung menjadi gugus berangka', (tester) async {
+    await pasang(tester, lokasi: FakeLokasi(), klaster: true);
+    await tester.pump(const Duration(milliseconds: 600));
+    final semua = DestinasiProvider();
+    await semua.muatData();
+    final satuan = semua.daftarDestinasi.where((d) => penanda(d.name).evaluate().isNotEmpty).length;
+    final jumlahGugus = _gugus.evaluate().length;
+    expect(jumlahGugus, greaterThan(0));
+    expect(_jumlahGugus(tester), greaterThanOrEqualTo(jumlahGugus * 2)); // tiap gugus >= 2 tempat
+    // Setiap tempat muncul tepat sekali: penanda satuan atau terhitung dalam satu gugus.
+    expect(satuan + _jumlahGugus(tester), semua.daftarDestinasi.length);
+    expect(satuan, lessThan(semua.daftarDestinasi.length));
+  });
+
+  testWidgets('klaster: ketuk gugus memperbesar peta sehingga gugus terurai', (tester) async {
+    await pasang(tester, lokasi: FakeLokasi(), klaster: true);
+    await tester.pump(const Duration(milliseconds: 600));
+    final sebelum = _jumlahGugus(tester);
+    // Pilih gugus yang tidak tertutup banner/filter/tombol.
+    final dapatDiketuk = _gugus.evaluate().map((e) => e.widget).where((w) {
+      final c = tester.getCenter(find.byWidget(w));
+      return c.dy > 330 && c.dy < 1100;
+    });
+    expect(dapatDiketuk, isNotEmpty);
+    await tester.tap(find.byWidget(dapatDiketuk.first));
+    await tester.pump(const Duration(milliseconds: 1200));
+    await tester.pump(const Duration(milliseconds: 600));
+    expect(_jumlahGugus(tester), lessThan(sebelum));
+  });
+
+  testWidgets('klaster: ketuk penanda satuan tetap membuka pratinjau', (tester) async {
+    await pasang(tester, lokasi: FakeLokasi(), klaster: true);
+    await tester.pump(const Duration(milliseconds: 600));
+    final semua = DestinasiProvider();
+    await semua.muatData();
+    final d = semua.daftarDestinasi.firstWhere((d) => penanda(d.name).evaluate().isNotEmpty);
+    await tester.ensureVisible(penanda(d.name));
+    await tester.tap(penanda(d.name));
+    await tester.pump(const Duration(milliseconds: 500));
+    expect(find.text('Rute'), findsOneWidget);
   });
 }
