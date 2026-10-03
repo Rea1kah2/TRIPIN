@@ -8,14 +8,13 @@ import '../../theme/app_colors.dart';
 import '../../utils/formatters.dart';
 import '../../widgets/app_snackbar.dart';
 import '../../widgets/rating_stars.dart';
-import '../../widgets/destinasi_image.dart';
+import '../../widgets/destinasi_galeri.dart';
 import '../../widgets/glass_scaffold.dart';
 import '../../widgets/glass_sheet.dart';
 import '../../theme/radii.dart';
 import '../../theme/typography.dart';
 import '../../widgets/glass_button.dart';
 import '../../widgets/glass_panel.dart';
-import '../../services/kredit_foto.dart';
 import '../../providers/review_provider.dart';
 import '../../widgets/review/review_section.dart';
 import '../../providers/lokasi_provider.dart';
@@ -176,11 +175,7 @@ class DetailDestinasiScreen extends StatelessWidget {
                 // jadi kartu info tidak boleh ditarik naik menimpa foto.
                 borderRadius: const BorderRadius.vertical(
                     bottom: Radius.circular(Radii.xl)),
-                child: DestinasiImage(
-                  aset: destinasi.fotoUtama,
-                  width: double.infinity,
-                  height: double.infinity,
-                ),
+                child: DestinasiGaleri(destinasi: destinasi),
               ),
             ),
           ),
@@ -290,8 +285,6 @@ class DetailDestinasiScreen extends StatelessWidget {
                             'Ceritakan tentang ${destinasi.name} dan apa yang bisa dilakukan di sana.',
                       ),
                     ),
-                    const SizedBox(height: 16),
-                    _KeteranganFoto(idDestinasi: destinasi.id),
                     const SizedBox(height: 32),
                   ],
                 ),
@@ -345,31 +338,6 @@ class _TombolBulatKaca extends StatelessWidget {
           ),
         ),
       ),
-    );
-  }
-}
-
-/// Atribusi foto (syarat lisensi CC BY / CC BY-SA); kosong bila foto belum tersedia.
-class _KeteranganFoto extends StatelessWidget {
-  final String idDestinasi;
-
-  const _KeteranganFoto({required this.idDestinasi});
-
-  @override
-  Widget build(BuildContext context) {
-    return FutureBuilder<Map<String, List<KreditFoto>>>(
-      future: KreditFotoService.muat(),
-      builder: (context, snap) {
-        final kredit = snap.data?[idDestinasi];
-        if (kredit == null || kredit.isEmpty) return const SizedBox.shrink();
-        return Center(
-          child: Text(
-            'Foto: ${kredit.first.ringkas}',
-            textAlign: TextAlign.center,
-            style: TextStyle(fontSize: 12, color: context.tripin.textSecondary),
-          ),
-        );
-      },
     );
   }
 }
