@@ -3,14 +3,17 @@ import 'package:provider/provider.dart';
 import '../../models/destinasi.dart';
 import '../../providers/destinasi_provider.dart';
 import '../../providers/rencana_provider.dart';
+import '../../routes/app_routes.dart';
 import '../../theme/app_colors.dart';
 import '../../utils/formatters.dart';
+import '../../utils/geo.dart';
 import '../../widgets/app_snackbar.dart';
 import '../../widgets/confirm_delete_dialog.dart';
 import '../../widgets/destinasi_card.dart';
 import '../../widgets/glass_scaffold.dart';
 import '../../widgets/glass_sheet.dart';
 import '../../widgets/glass_app_bar.dart';
+import 'peta_rencana_screen.dart';
 
 class DetailRencanaScreen extends StatefulWidget {
   final String rencanaId;
@@ -246,20 +249,45 @@ class _DetailRencanaScreenState extends State<DetailRencanaScreen> {
             ],
           ],
           const SizedBox(height: 24),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          Wrap(
+            alignment: WrapAlignment.spaceBetween,
+            crossAxisAlignment: WrapCrossAlignment.center,
             children: [
               Text(
                 'Destinasi (${daftarDestinasi.length})',
                 style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
               ),
-              TextButton.icon(
-                onPressed: () => _bukaTambahDestinasi(context, rencana.daftarDestinasiId),
-                icon: const Icon(Icons.add, size: 18),
-                label: const Text('Tambah'),
+              Wrap(
+                crossAxisAlignment: WrapCrossAlignment.center,
+                children: [
+                  if (daftarDestinasi.isNotEmpty)
+                    TextButton.icon(
+                      onPressed: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => PetaRencanaScreen(judul: rencana.judul, daftar: daftarDestinasi),
+                        ),
+                      ),
+                      icon: const Icon(Icons.map_outlined, size: 18),
+                      label: const Text('Lihat di peta'),
+                    ),
+                  TextButton.icon(
+                    onPressed: () => _bukaTambahDestinasi(context, rencana.daftarDestinasiId),
+                    icon: const Icon(Icons.add, size: 18),
+                    label: const Text('Tambah'),
+                  ),
+                ],
               ),
             ],
           ),
+          if (daftarDestinasi.length > 1)
+            Padding(
+              padding: const EdgeInsets.only(top: 2),
+              child: Text(
+                'Tahan dan seret ikon ≡ untuk mengubah urutan kunjungan.',
+                style: TextStyle(fontSize: 12.5, color: context.tripin.textSecondary),
+              ),
+            ),
           const SizedBox(height: 8),
           if (daftarDestinasi.isEmpty)
             Padding(
@@ -267,30 +295,91 @@ class _DetailRencanaScreenState extends State<DetailRencanaScreen> {
               child: Text('Belum ada destinasi di rencana ini.', style: TextStyle(color: context.tripin.textSecondary)),
             )
           else
-            ...daftarDestinasi.map((destinasi) {
-              return Padding(
-                padding: const EdgeInsets.only(bottom: 12),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: DestinasiCard(
-                        destinasi: destinasi,
-                        dense: true,
-                        onTap: () {},
-                        onFavoriteTap: () => destinasiProvider.toggleFavorit(destinasi.id),
+            ReorderableListView.builder(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              buildDefaultDragHandles: false,
+              itemCount: daftarDestinasi.length,
+              onReorder: (lama, baru) => rencanaProvider.urutUlangDestinasi(rencana.id, lama, baru),
+              proxyDecorator: (child, _, __) => Material(color: Colors.transparent, child: child),
+              itemBuilder: (context, index) {
+                final destinasi = daftarDestinasi[index];
+                final sebelumnya = index == 0 ? null : daftarDestinasi[index - 1];
+                return Padding(
+                  key: ValueKey(destinasi.id),
+                  padding: const EdgeInsets.only(bottom: 12),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      if (sebelumnya != null)
+                        Padding(
+                          padding: const EdgeInsets.only(left: 12, bottom: 6),
+                          child: Text(
+                            '↓ ±${formatJarak(jarakKm(sebelumnya.lat, sebelumnya.lng, destinasi.lat, destinasi.lng))} dari tempat sebelumnya (garis lurus)',
+                            style: TextStyle(fontSize: 12, color: context.tripin.textSecondary),
+                          ),
+                        ),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Stack(
+                              clipBehavior: Clip.none,
+                              children: [
+                                DestinasiCard(
+                                  destinasi: destinasi,
+                                  dense: true,
+                                  onTap: () => Navigator.pushNamed(context, AppRoutes.destinasiDetail, arguments: destinasi.id),
+                                  onFavoriteTap: () => destinasiProvider.toggleFavorit(destinasi.id),
+                                ),
+                                Positioned(
+                                  left: -4,
+                                  top: -4,
+                                  child: IgnorePointer(
+                                    child: CircleAvatar(
+                                      radius: 13,
+                                      backgroundColor: context.colors.primary,
+                                      child: Text(
+                                        '${index + 1}',
+                                        style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: context.colors.onPrimary),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              if (daftarDestinasi.length > 1)
+                                ReorderableDragStartListener(
+                                  index: index,
+                                  child: Semantics(
+                                    label: 'Seret untuk mengubah urutan ${destinasi.name}',
+                                    child: Padding(
+                                      padding: const EdgeInsets.all(8),
+                                      child: Icon(Icons.drag_handle, color: context.tripin.textSecondary),
+                                    ),
+                                  ),
+                                ),
+                              IconButton(
+                                visualDensity: VisualDensity.compact,
+                                icon: Icon(Icons.remove_circle_outline, color: context.tripin.favoriteActive),
+                                tooltip: 'Keluarkan ${destinasi.name}',
+                                onPressed: () {
+                                  rencanaProvider.hapusDestinasiDariRencana(rencana.id, destinasi.id);
+                                  showAppSnackbar(context, '${destinasi.name} dikeluarkan dari rencana');
+                                },
+                              ),
+                            ],
+                          ),
+                        ],
                       ),
-                    ),
-                    IconButton(
-                      icon: Icon(Icons.remove_circle_outline, color: context.tripin.favoriteActive),
-                      onPressed: () {
-                        rencanaProvider.hapusDestinasiDariRencana(rencana.id, destinasi.id);
-                        showAppSnackbar(context, '${destinasi.name} dikeluarkan dari rencana');
-                      },
-                    ),
-                  ],
-                ),
-              );
-            }),
+                    ],
+                  ),
+                );
+              },
+            ),
         ],
       ),
     );

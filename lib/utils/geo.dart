@@ -17,3 +17,12 @@ String formatJarak(double km) {
   if (km < 10) return '${km.toStringAsFixed(1).replaceAll('.', ',')} km';
   return '${km.round()} km';
 }
+
+/// Total panjang jalur garis lurus melalui titik-titik berurutan (km). Kurang dari 2 titik = 0.
+double panjangRuteKm(List<({double lat, double lng})> titik) {
+  var total = 0.0;
+  for (var i = 1; i < titik.length; i++) {
+    total += jarakKm(titik[i - 1].lat, titik[i - 1].lng, titik[i].lat, titik[i].lng);
+  }
+  return total;
+}
