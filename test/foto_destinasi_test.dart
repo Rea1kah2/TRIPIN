@@ -24,9 +24,20 @@ void main() {
 
   test('destinasi tanpa foto asli dinyatakan jujur (tidak memakai foto asal)', () {
     final tanpaFoto = dummyDestinasiList.where((d) => d.fotoAssets.isEmpty).map((d) => d.id).toList();
-    // Commons tidak punya foto layak untuk d16 (Mangrove Percut), d17 (Sri Mersing), d23 (Rahmat Gallery).
-    expect(tanpaFoto, ['d16', 'd17', 'd23']);
+    // Commons tidak punya foto yang cocok untuk d16 (Mangrove Percut) dan d17 (Sri Mersing).
+    expect(tanpaFoto, ['d16', 'd17']);
     expect(dummyDestinasiList.firstWhere((d) => d.id == 'd16').fotoUtama, isNull);
+  });
+
+  test('galeri: 1-3 foto per tempat, semua berkredit lengkap dan berurutan', () async {
+    final kredit = await KreditFotoService.muat(rootBundle);
+    for (final d in dummyDestinasiList.where((d) => d.fotoAssets.isNotEmpty)) {
+      expect(d.fotoAssets.length, inInclusiveRange(1, 3), reason: d.id);
+      expect(kredit[d.id]!.map((k) => k.file).toList(), d.fotoAssets, reason: '${d.id}: urutan kredit = urutan foto');
+      expect(d.fotoAssets.toSet().length, d.fotoAssets.length, reason: '${d.id}: tanpa duplikat');
+    }
+    // sebagian besar tempat sudah punya galeri penuh
+    expect(dummyDestinasiList.where((d) => d.fotoAssets.length == 3).length, greaterThanOrEqualTo(24));
   });
 
   test('tidak ada lagi URL gambar acak (unsplash/picsum) di data', () {

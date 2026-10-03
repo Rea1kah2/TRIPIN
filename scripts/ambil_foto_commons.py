@@ -37,8 +37,8 @@ OUT_ASSET = ROOT / "assets" / "destinasi"
 # id -> daftar kueri pencarian (berurutan; hasil digabung tanpa duplikat).
 KUERI = {
     "d01": ["Danau Toba", "Lake Toba", "Danau Toba Samosir panorama"],
-    "d02": ["Bukit Lawang", "Bukit Lawang orangutan", "Bukit Lawang Bohorok river"],
-    "d03": ["Berastagi", "Brastagi Karo", "Pasar Buah Berastagi"],
+    "d02": ["Bukit Lawang", "Bukit Lawang orangutan", "Bukit Lawang Bohorok river", "Gunung Leuser orangutan Sumatra", "Bohorok River Bukit Lawang"],
+    "d03": ["Berastagi", "Brastagi Karo", "Pasar Buah Berastagi", "Gunung Sinabung Karo", "Gunung Sibayak", "Berastagi Karo highlands"],
     "d04": ["Taman Cadika Medan", "Cadika Pramuka Medan"],
     "d05": ["Istana Maimun", "Maimun Palace Medan"],
     "d06": ["Air Terjun Sipiso-piso", "Sipiso-piso waterfall"],
@@ -50,16 +50,16 @@ KUERI = {
     "d12": ["Pantai Cermin Serdang Bedagai", "Pantai Cermin"],
     "d13": ["Bukit Gundaling", "Gundaling Berastagi"],
     "d14": ["Air Terjun Dua Warna", "Dua Warna waterfall Karo"],
-    "d15": ["Taman Simalem Resort", "Simalem Resort Karo"],
-    "d16": ["Mangrove Percut Sei Tuan", "Hutan mangrove Medan", "Mangrove Deli Serdang"],
-    "d17": ["Pantai Sri Mersing", "Sri Mersing Serdang Bedagai"],
+    "d15": ["Taman Simalem Resort", "Simalem Resort Karo", "Tongging Danau Toba Karo", "Simalem Park"],
+    "d16": ["Mangrove Percut Sei Tuan", "Hutan mangrove Medan", "Mangrove Deli Serdang", "Mangrove Sumatera Utara", "hutan bakau Medan"],
+    "d17": ["Pantai Sri Mersing", "Sri Mersing Serdang Bedagai", "Pantai Serdang Bedagai", "Teluk Mengkudu pantai", "pantai Sumatera Utara"],
     "d18": ["Rumah Bolon Simalungun", "Rumah Bolon Pematang Purba", "Istana Pematang Purba"],
     "d19": ["Pelabuhan Belawan", "Belawan Medan fish market", "Pasar Ikan Belawan"],
-    "d20": ["Kopi Sidikalang", "Sidikalang Dairi coffee", "Sidikalang"],
+    "d20": ["Kopi Sidikalang", "Sidikalang Dairi coffee", "Sidikalang", "coffee plantation Dairi", "kopi arabika Sumatera Utara"],
     "banner": ["Danau Toba panorama", "Lake Toba Samosir view", "Sumatera Utara landscape"],
     "d21": ["Tjong A Fie Mansion", "Rumah Tjong A Fie Medan"],
     "d22": ["Masjid Raya Al Mashun", "Masjid Raya Medan"],
-    "d23": ["Rahmat International Wildlife Museum", "Rahmat Gallery Medan"],
+    "d23": ["Rahmat International Wildlife Museum", "Rahmat Gallery Medan", "Museum satwa Medan", "Rahmat Gallery"],
     "d24": ["Merdeka Walk Medan", "Lapangan Merdeka Medan"],
     "d25": ["Taman Alam Lumbini", "Lumbini Berastagi pagoda"],
     "d26": ["Gunung Sibayak", "Sibayak crater"],
@@ -169,7 +169,11 @@ def cmd_cari(a):
     f.write_text(json.dumps(prev, ensure_ascii=False, indent=1))
 
 
-def _kandidat_id(did, per_id=6):
+PER_ID = 6
+
+
+def _kandidat_id(did, per_id=None):
+    per_id = per_id or PER_ID
     gabung, lihat = [], set()
     for q in KUERI[did]:
         try:
@@ -185,6 +189,8 @@ def _kandidat_id(did, per_id=6):
 
 
 def cmd_cepat(a):
+    global PER_ID
+    PER_ID = a.per
     """Cari semua destinasi paralel, lalu buat 3 lembar kontak (7 baris x 3 kandidat)."""
     kerja = Path(a.kerja)
     kerja.mkdir(parents=True, exist_ok=True)
@@ -229,37 +235,118 @@ def cmd_cepat(a):
     print("selesai")
 
 
-def cmd_unduh(a):
-    """Unduh foto terpilih. foto_pilihan.json: {id: [sumber, indeks, (kunci)]} dengan sumber
-    kandidat/tambahan/geo = berkas JSON di folder kerja. d16 dan d17 sengaja tidak punya foto."""
+def _indeks_kandidat(kerja):
+    """Semua kandidat di semua berkas JSON folder kerja, diindeks menurut judul berkas."""
+    idx = {}
+    for f in kerja.glob("*.json"):
+        try:
+            data = json.loads(f.read_text())
+        except ValueError:
+            continue
+        if not isinstance(data, dict):
+            continue
+        for daftar in data.values():
+            if isinstance(daftar, list):
+                for c in daftar:
+                    if isinstance(c, dict) and "judul" in c and "thumb" in c:
+                        idx.setdefault(c["judul"], c)
+    return idx
+
+
+def _info_judul(judul):
+    """Ambil info satu berkas Commons berdasarkan judulnya (bila tidak ada di daftar kandidat)."""
+    r = json.loads(get(API, {
+        "action": "query", "titles": judul, "prop": "imageinfo",
+        "iiprop": "url|extmetadata|size|mime", "iiurlwidth": 1000, "format": "json",
+    }))
+    for p in r.get("query", {}).get("pages", {}).values():
+        ii = (p.get("imageinfo") or [None])[0]
+        if not ii:
+            continue
+        m = ii.get("extmetadata", {})
+        return {
+            "judul": p["title"], "lebar": ii["width"], "tinggi": ii["height"],
+            "lisensi": bersih(m.get("LicenseShortName", {}).get("value", "")),
+            "lisensi_url": bersih(m.get("LicenseUrl", {}).get("value", "")),
+            "fotografer": bersih(m.get("Artist", {}).get("value", "")) or "Tidak diketahui",
+            "halaman": ii.get("descriptionshorturl") or ii.get("descriptionurl"),
+            "thumb": ii.get("thumburl"), "url": ii.get("url"),
+        }
+    return None
+
+
+def cmd_geo(a):
+    """Cari foto ber-geotag di sekitar koordinat (mis. tempat yang tidak ketemu lewat nama)."""
     kerja = Path(a.kerja)
-    sumber = {n: json.loads((kerja / f"{n}.json").read_text()) for n in ("kandidat", "tambahan", "geo")}
+    kerja.mkdir(parents=True, exist_ok=True)
+    d = json.loads(get(API, {
+        "action": "query", "list": "geosearch", "gscoord": f"{a.lat}|{a.lon}", "gsradius": a.radius,
+        "gsnamespace": 6, "gslimit": 60, "format": "json",
+    }))
+    judul = [g["title"] for g in d.get("query", {}).get("geosearch", [])]
+    hasil = []
+    for i in range(0, len(judul), 20):
+        r = json.loads(get(API, {
+            "action": "query", "titles": "|".join(judul[i:i + 20]), "prop": "imageinfo",
+            "iiprop": "url|extmetadata|size|mime", "iiurlwidth": 1000, "format": "json",
+        }))
+        for p in r.get("query", {}).get("pages", {}).values():
+            ii = (p.get("imageinfo") or [{}])[0]
+            m = ii.get("extmetadata", {})
+            lis = bersih(m.get("LicenseShortName", {}).get("value", ""))
+            if ii.get("mime") not in ("image/jpeg", "image/png") or not lis:
+                continue
+            if LISENSI_NO.search(lis) or not LISENSI_OK.match(lis):
+                continue
+            if ii.get("width", 0) < 1000 or NAMA_BURUK.search(p["title"]):
+                continue
+            hasil.append({
+                "judul": p["title"], "lebar": ii["width"], "tinggi": ii["height"], "lisensi": lis,
+                "lisensi_url": bersih(m.get("LicenseUrl", {}).get("value", "")),
+                "fotografer": bersih(m.get("Artist", {}).get("value", "")) or "Tidak diketahui",
+                "halaman": ii.get("descriptionshorturl") or ii.get("descriptionurl"),
+                "thumb": ii.get("thumburl"), "url": ii.get("url"),
+            })
+    (kerja / f"geo_{a.id}.json").write_text(json.dumps({a.id: hasil}, ensure_ascii=False, indent=1))
+    print(a.id, len(hasil), "kandidat")
+
+
+def cmd_unduh(a):
+    """Unduh foto terpilih. foto_pilihan.json: {id: [judul berkas Commons, ...]} (maks 3).
+    Foto pertama = foto utama (1.jpg). Berkas lama dibersihkan agar jumlahnya sesuai pilihan."""
+    kerja = Path(a.kerja)
+    idx = _indeks_kandidat(kerja)
     pilihan = json.loads(PILIHAN.read_text())
     OUT_ASSET.mkdir(parents=True, exist_ok=True)
     kredit_f = OUT_ASSET / "kredit.json"
     kredit = json.loads(kredit_f.read_text()) if kredit_f.exists() else {}
-    for did, rujuk in pilihan.items():
+    for did, judul_list in pilihan.items():
         if a.id and did != a.id:
             continue
-        nama, idx = rujuk[0], rujuk[1]
-        kunci = rujuk[2] if len(rujuk) > 2 else did
-        c = sumber[nama][kunci][idx]
         tujuan = OUT_ASSET / did
         tujuan.mkdir(parents=True, exist_ok=True)
-        img = Image.open(io.BytesIO(get(c["thumb"]))).convert("RGB")
-        img.thumbnail((1000, 1000))
-        path = tujuan / "1.jpg"
-        img.save(path, quality=76, optimize=True, progressive=True)
-        kredit[did] = [{
-            "file": f"assets/destinasi/{did}/1.jpg",
-            "judul": c["judul"].removeprefix("File:"),
-            "fotografer": c["fotografer"],
-            "lisensi": c["lisensi"],
-            "lisensiUrl": c["lisensi_url"],
-            "sumber": c["halaman"],
-        }]
-        print(did, path.stat().st_size // 1024, "KB", c["judul"])
-        time.sleep(0.3)
+        for lama in tujuan.glob("*.jpg"):
+            lama.unlink()
+        daftar = []
+        for n, judul in enumerate(judul_list[:3], 1):
+            c = idx.get(judul) or _info_judul(judul)
+            if c is None:
+                raise SystemExit(f"{did}: kandidat '{judul}' tidak ditemukan di {kerja}")
+            img = Image.open(io.BytesIO(get(c["thumb"]))).convert("RGB")
+            img.thumbnail((1000, 1000))
+            path = tujuan / f"{n}.jpg"
+            img.save(path, quality=76, optimize=True, progressive=True)
+            daftar.append({
+                "file": f"assets/destinasi/{did}/{n}.jpg",
+                "judul": c["judul"].removeprefix("File:"),
+                "fotografer": c["fotografer"],
+                "lisensi": c["lisensi"],
+                "lisensiUrl": c["lisensi_url"],
+                "sumber": c["halaman"],
+            })
+            print(did, n, path.stat().st_size // 1024, "KB", c["judul"])
+            time.sleep(0.25)
+        kredit[did] = daftar
     kredit_f.write_text(json.dumps(kredit, ensure_ascii=False, indent=1))
 
 
@@ -272,8 +359,15 @@ if __name__ == "__main__":
     c3 = sp.add_parser("cepat")
     c3.add_argument("--kerja", required=True)
     c3.add_argument("--ids", help="daftar id dipisah koma (default: semua)")
+    c3.add_argument("--per", type=int, default=6, help="jumlah kandidat per tempat")
+    c4 = sp.add_parser("geo")
+    c4.add_argument("--kerja", required=True)
+    c4.add_argument("--id", required=True)
+    c4.add_argument("--lat", type=float, required=True)
+    c4.add_argument("--lon", type=float, required=True)
+    c4.add_argument("--radius", type=int, default=10000)
     c2 = sp.add_parser("unduh")
     c2.add_argument("--kerja", required=True)
     c2.add_argument("--id")
     args = ap.parse_args()
-    {"cari": cmd_cari, "cepat": cmd_cepat, "unduh": cmd_unduh}[args.cmd](args)
+    {"cari": cmd_cari, "cepat": cmd_cepat, "geo": cmd_geo, "unduh": cmd_unduh}[args.cmd](args)
