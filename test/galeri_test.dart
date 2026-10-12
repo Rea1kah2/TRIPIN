@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:tugas_kelompok/data/dummy_destinasi.dart';
+import 'package:tugas_kelompok/models/destinasi.dart';
 import 'package:tugas_kelompok/screens/destinasi/penampil_foto_screen.dart';
 import 'package:tugas_kelompok/theme/app_theme.dart';
 import 'package:tugas_kelompok/widgets/destinasi_galeri.dart';
@@ -75,7 +76,26 @@ void main() {
   });
 
   testWidgets('tanpa foto: penanda jujur, bukan foto asal', (tester) async {
-    await pasang(tester, 'd16');
+    const dummyTanpaFoto = Destinasi(
+      id: 'd_test',
+      name: 'Tempat Uji',
+      location: 'Medan',
+      kategoriId: 'k1',
+      rating: 4.0,
+      price: 0,
+      fotoAssets: [],
+      description: 'Uji destinasi tanpa foto',
+      lat: 3.5,
+      lng: 98.6,
+    );
+    tester.view.physicalSize = const Size(800, 1200);
+    tester.view.devicePixelRatio = 2;
+    addTearDown(tester.view.reset);
+    await tester.pumpWidget(MaterialApp(
+      theme: buildLightTheme(),
+      home: const Scaffold(body: SizedBox(height: 320, width: double.infinity, child: DestinasiGaleri(destinasi: dummyTanpaFoto))),
+    ));
+    await tester.pump(const Duration(milliseconds: 300));
     expect(find.text('Foto belum tersedia'), findsOneWidget);
     expect(find.byType(PageView), findsNothing);
   });

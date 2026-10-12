@@ -5,7 +5,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:tugas_kelompok/providers/destinasi_provider.dart';
 import 'package:tugas_kelompok/providers/review_provider.dart';
 import 'package:tugas_kelompok/routes/app_routes.dart';
-import 'package:tugas_kelompok/screens/destinasi/pencarian_rekomendasi_screen.dart';
 import 'package:tugas_kelompok/theme/app_theme.dart';
 
 void main() {
