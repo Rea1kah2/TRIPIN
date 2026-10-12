@@ -16,7 +16,7 @@ class AppConfig {
 
   static String get apiBaseUrl {
     if (_apiBaseUrlDefine.isNotEmpty) return _apiBaseUrlDefine;
-    // Android: `localhost` sampai ke laptop lewat `adb reverse` (lihat komentar kelas).
-    return 'http://localhost:3000';
+    // Default cloud backend di Render (bisa dioverride dengan --dart-define=API_BASE_URL=http://localhost:3000 saat dev lokal)
+    return 'https://tripin-backend.onrender.com';
   }
 }
