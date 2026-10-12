@@ -190,7 +190,7 @@ final List<Destinasi> dummyDestinasiList = [
     kategoriId: 'k5',
     rating: 4.2,
     price: 10000,
-    fotoAssets: [], // belum ada foto asli
+    fotoAssets: ['assets/destinasi/d16/1.jpg', 'assets/destinasi/d16/2.jpg'],
     description: 'Ekowisata hutan bakau dengan jembatan kayu dan susur sungai.',
     lat: 3.69169,
     lng: 98.74151,
@@ -203,7 +203,7 @@ final List<Destinasi> dummyDestinasiList = [
     kategoriId: 'k2',
     rating: 4.1,
     price: 10000,
-    fotoAssets: [], // belum ada foto asli
+    fotoAssets: ['assets/destinasi/d17/1.jpg', 'assets/destinasi/d17/2.jpg'],
     description: 'Pantai tenang dengan pasir kecoklatan, favorit warga lokal.',
     lat: 3.53583,
     lng: 99.0966,
