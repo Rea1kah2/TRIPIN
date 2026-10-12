@@ -22,11 +22,9 @@ void main() {
     expect(kredit['banner'], isNotNull);
   });
 
-  test('destinasi tanpa foto asli dinyatakan jujur (tidak memakai foto asal)', () {
+  test('semua destinasi kini memiliki foto terverifikasi', () {
     final tanpaFoto = dummyDestinasiList.where((d) => d.fotoAssets.isEmpty).map((d) => d.id).toList();
-    // Commons tidak punya foto yang cocok untuk d16 (Mangrove Percut) dan d17 (Sri Mersing).
-    expect(tanpaFoto, ['d16', 'd17']);
-    expect(dummyDestinasiList.firstWhere((d) => d.id == 'd16').fotoUtama, isNull);
+    expect(tanpaFoto, isEmpty, reason: 'Semua 32 destinasi sekarang memiliki foto dan atribusi lisensi');
   });
 
   test('galeri: 1-3 foto per tempat, semua berkredit lengkap dan berurutan', () async {

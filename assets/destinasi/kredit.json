@@ -740,5 +740,41 @@
    "lisensiUrl": "https://creativecommons.org/licenses/by-sa/3.0",
    "sumber": "https://commons.wikimedia.org/w/index.php?curid=28943905"
   }
+ ],
+ "d16": [
+  {
+   "file": "assets/destinasi/d16/1.jpg",
+   "judul": "Hutan Mangrove Langsa 01.jpg",
+   "fotografer": "Zaragyh",
+   "lisensi": "CC BY-SA 4.0",
+   "lisensiUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+   "sumber": "https://commons.wikimedia.org/w/index.php?curid=60128987"
+  },
+  {
+   "file": "assets/destinasi/d16/2.jpg",
+   "judul": "Hutan Mangrove Langsa 02.jpg",
+   "fotografer": "Zaragyh",
+   "lisensi": "CC BY-SA 4.0",
+   "lisensiUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+   "sumber": "https://commons.wikimedia.org/w/index.php?curid=60129031"
+  }
+ ],
+ "d17": [
+  {
+   "file": "assets/destinasi/d17/1.jpg",
+   "judul": "Beachview at Pantai Mangrove Kampoeng Nipah.jpg",
+   "fotografer": "Agus Damanik",
+   "lisensi": "CC BY 4.0",
+   "lisensiUrl": "https://creativecommons.org/licenses/by/4.0",
+   "sumber": "https://commons.wikimedia.org/w/index.php?curid=143592945"
+  },
+  {
+   "file": "assets/destinasi/d17/2.jpg",
+   "judul": "Row of mangrove near the coast in Pantai Mangrove Kampoeng Nipah.jpg",
+   "fotografer": "Agus Damanik",
+   "lisensi": "CC BY 4.0",
+   "lisensiUrl": "https://creativecommons.org/licenses/by/4.0",
+   "sumber": "https://commons.wikimedia.org/w/index.php?curid=143594820"
+  }
  ]
 }
