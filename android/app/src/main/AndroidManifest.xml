@@ -1,4 +1,9 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Dibutuhkan untuk memuat gambar dan memanggil backend asisten (build release). -->
+    <uses-permission android:name="android.permission.INTERNET"/>
+    <!-- Posisi pengguna untuk Peta dan jarak ke destinasi (hanya saat aplikasi dipakai). -->
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
     <application
         android:label="tugas_kelompok"
         android:name="${applicationName}"
@@ -37,6 +42,11 @@
 
          In particular, this is used by the Flutter engine in io.flutter.plugin.text.ProcessTextPlugin. -->
     <queries>
+        <!-- Membuka rute di Google Maps / browser (url_launcher). -->
+        <intent>
+            <action android:name="android.intent.action.VIEW"/>
+            <data android:scheme="https"/>
+        </intent>
         <intent>
             <action android:name="android.intent.action.PROCESS_TEXT"/>
             <data android:mimeType="text/plain"/>

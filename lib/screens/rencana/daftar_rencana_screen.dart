@@ -6,6 +6,9 @@ import '../../theme/app_colors.dart';
 import '../../widgets/app_snackbar.dart';
 import '../../widgets/confirm_delete_dialog.dart';
 import '../../widgets/rencana_card.dart';
+import '../../widgets/glass_scaffold.dart';
+import '../../widgets/glass_app_bar.dart';
+import '../../widgets/keadaan_kosong.dart';
 
 class DaftarRencanaScreen extends StatelessWidget {
   const DaftarRencanaScreen({super.key});
@@ -15,18 +18,15 @@ class DaftarRencanaScreen extends StatelessWidget {
     final provider = context.watch<RencanaProvider>();
     final daftar = provider.daftarRencana;
 
-    return Scaffold(
-      appBar: AppBar(title: const Text('Rencana Perjalanan')),
+    return GlassScaffold(
+      appBar: const GlassAppBar(judul: 'Rencana Perjalanan'),
       body: daftar.isEmpty
-          ? const Center(
-              child: Padding(
-                padding: EdgeInsets.symmetric(horizontal: 32),
-                child: Text(
-                  'Belum ada rencana perjalanan.\nTap tombol + untuk membuat satu.',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(color: Colors.grey),
-                ),
-              ),
+          ? KeadaanKosong(
+              ikon: Icons.map_outlined,
+              judul: 'Belum ada rencana',
+              pesan: 'Susun perjalanan pertamamu, atau minta Tripy menyusunkannya.',
+              labelAksi: 'Buat rencana',
+              onAksi: () => Navigator.pushNamed(context, AppRoutes.rencanaTambah),
             )
           : ListView.builder(
               padding: const EdgeInsets.all(16),
@@ -42,10 +42,10 @@ class DaftarRencanaScreen extends StatelessWidget {
                       alignment: Alignment.centerRight,
                       padding: const EdgeInsets.only(right: 20),
                       decoration: BoxDecoration(
-                        color: AppColors.favoriteActive,
+                        color: context.colors.error,
                         borderRadius: BorderRadius.circular(20),
                       ),
-                      child: const Icon(Icons.delete_outline, color: Colors.white),
+                      child: Icon(Icons.delete_outline, color: context.colors.onError),
                     ),
                     confirmDismiss: (_) => showConfirmDeleteDialog(
                       context,
@@ -70,7 +70,6 @@ class DaftarRencanaScreen extends StatelessWidget {
             ),
       floatingActionButton: FloatingActionButton(
         onPressed: () => Navigator.pushNamed(context, AppRoutes.rencanaTambah),
-        backgroundColor: AppColors.primary,
         child: const Icon(Icons.add),
       ),
     );

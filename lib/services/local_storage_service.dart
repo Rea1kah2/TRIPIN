@@ -1,9 +1,9 @@
-
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../models/chat_message.dart';
+import '../models/review.dart';
 import '../models/rencana_perjalanan.dart';
 import '../models/user.dart';
-import '../models/review.dart';
 
 class LocalStorageService {
   static const _keyUsers = 'tripin_users';
@@ -11,16 +11,87 @@ class LocalStorageService {
   static const _keyFavoritIds = 'tripin_favorit_ids';
   static const _keyRencana = 'tripin_rencana';
   static const _keyRencanaInitialized = 'tripin_rencana_initialized';
+  static const _keyThemeMode = 'tripin_theme_mode';
+  static const _keyReview = 'tripin_reviews';
+  static const _keyGlassIntensity = 'tripin_glass_intensity';
+  static const _keyReduceTransparency = 'tripin_reduce_transparency';
 
-  // Key baru khusus untuk menyimpan ulasan.
-  static const _keyReviews = 'tripin_reviews';
+  static String _keyChat(String userId) => 'tripin_chat_$userId';
+
+  Future<List<ChatMessage>> muatChat(String userId) async {
+    final prefs = await SharedPreferences.getInstance();
+    final raw = prefs.getString(_keyChat(userId));
+    if (raw == null) return [];
+    try {
+      return (jsonDecode(raw) as List)
+          .map((e) => ChatMessage.fromJson(e as Map<String, dynamic>))
+          .toList();
+    } catch (_) {
+      return []; // riwayat rusak: mulai baru, jangan crash
+    }
+  }
+
+  Future<void> simpanChat(String userId, List<ChatMessage> pesan) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(
+      _keyChat(userId),
+      jsonEncode(pesan.map((m) => m.toJson()).toList()),
+    );
+  }
+
+  Future<String?> muatThemeMode() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString(_keyThemeMode);
+  }
+
+  Future<void> simpanThemeMode(String mode) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_keyThemeMode, mode);
+  }
+
+  Future<List<Review>> muatReview() async {
+    final prefs = await SharedPreferences.getInstance();
+    final raw = prefs.getString(_keyReview);
+    if (raw == null) return [];
+    try {
+      return [
+        for (final e in jsonDecode(raw) as List)
+          if (Review.tryFromJson(e) case final r?) r,
+      ];
+    } catch (_) {
+      return []; // data rusak: mulai baru, jangan crash
+    }
+  }
+
+  Future<void> simpanReview(List<Review> review) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_keyReview, jsonEncode(review.map((r) => r.toJson()).toList()));
+  }
+
+  Future<double?> muatGlassIntensity() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getDouble(_keyGlassIntensity);
+  }
+
+  Future<void> simpanGlassIntensity(double nilai) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setDouble(_keyGlassIntensity, nilai);
+  }
+
+  Future<bool> muatReduceTransparency() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getBool(_keyReduceTransparency) ?? false;
+  }
+
+  Future<void> simpanReduceTransparency(bool nilai) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(_keyReduceTransparency, nilai);
+  }
 
   Future<List<User>> muatUser() async {
     final prefs = await SharedPreferences.getInstance();
     final raw = prefs.getString(_keyUsers);
-
     if (raw == null) return [];
-
     return (jsonDecode(raw) as List)
         .map((e) => User.fromJson(e as Map<String, dynamic>))
         .toList();
@@ -28,7 +99,6 @@ class LocalStorageService {
 
   Future<void> simpanUser(List<User> users) async {
     final prefs = await SharedPreferences.getInstance();
-
     await prefs.setString(
       _keyUsers,
       jsonEncode(users.map((u) => u.toJson()).toList()),
@@ -42,7 +112,6 @@ class LocalStorageService {
 
   Future<void> simpanSessionUserId(String? userId) async {
     final prefs = await SharedPreferences.getInstance();
-
     if (userId == null) {
       await prefs.remove(_keySessionUserId);
     } else {
@@ -52,13 +121,11 @@ class LocalStorageService {
 
   Future<Set<String>> muatFavoritIds() async {
     final prefs = await SharedPreferences.getInstance();
-
     return (prefs.getStringList(_keyFavoritIds) ?? []).toSet();
   }
 
   Future<void> simpanFavoritIds(Set<String> ids) async {
     final prefs = await SharedPreferences.getInstance();
-
     await prefs.setStringList(_keyFavoritIds, ids.toList());
   }
 
@@ -70,56 +137,18 @@ class LocalStorageService {
   Future<List<RencanaPerjalanan>> muatRencana() async {
     final prefs = await SharedPreferences.getInstance();
     final raw = prefs.getString(_keyRencana);
-
     if (raw == null) return [];
-
     return (jsonDecode(raw) as List)
         .map((e) => RencanaPerjalanan.fromJson(e as Map<String, dynamic>))
         .toList();
   }
 
-  Future<void> simpanRencana(
-      List<RencanaPerjalanan> rencana,
-      ) async {
+  Future<void> simpanRencana(List<RencanaPerjalanan> rencana) async {
     final prefs = await SharedPreferences.getInstance();
-
     await prefs.setString(
       _keyRencana,
       jsonEncode(rencana.map((r) => r.toJson()).toList()),
     );
-
     await prefs.setBool(_keyRencanaInitialized, true);
-  }
-
-  // ==============================
-  // FUNGSI BARU: MEMUAT ULASAN
-  // ==============================
-  Future<List<Review>> muatReviews() async {
-    final prefs = await SharedPreferences.getInstance();
-    final raw = prefs.getString(_keyReviews);
-
-    if (raw == null) return [];
-
-    final List<dynamic> data = jsonDecode(raw) as List<dynamic>;
-
-    return data
-        .map(
-          (e) => Review.fromMap(
-        Map<String, dynamic>.from(e as Map),
-      ),
-    )
-        .toList();
-  }
-
-  // ==============================
-  // FUNGSI BARU: MENYIMPAN ULASAN
-  // ==============================
-  Future<void> simpanReviews(List<Review> reviews) async {
-    final prefs = await SharedPreferences.getInstance();
-
-    await prefs.setString(
-      _keyReviews,
-      jsonEncode(reviews.map((review) => review.toMap()).toList()),
-    );
   }
 }

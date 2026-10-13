@@ -2,6 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../routes/app_routes.dart';
+import '../../theme/app_colors.dart';
+import '../../widgets/theme_toggle_button.dart';
+import '../../widgets/glass_scaffold.dart';
+import '../../widgets/app_snackbar.dart';
+import '../../theme/radii.dart';
+import '../../widgets/glass_button.dart';
+import '../../widgets/glass_panel.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -24,18 +31,21 @@ class _LoginPageState extends State<LoginPage> {
     super.dispose();
   }
 
-  void login() {
-    if (!_formKey.currentState!.validate()) return;
+  bool _memproses = false;
 
-    final error = context.read<AuthProvider>().login(
+  Future<void> login() async {
+    if (_memproses || !_formKey.currentState!.validate()) return;
+
+    setState(() => _memproses = true);
+    final error = await context.read<AuthProvider>().login(
           emailController.text.trim(),
           passwordController.text,
         );
+    if (!mounted) return;
+    setState(() => _memproses = false);
 
     if (error != null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(error)),
-      );
+      showAppSnackbar(context, error, isError: true);
       return;
     }
 
@@ -62,7 +72,7 @@ class _LoginPageState extends State<LoginPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return GlassScaffold(
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(horizontal: 28),
@@ -71,47 +81,61 @@ class _LoginPageState extends State<LoginPage> {
             autovalidateMode: AutovalidateMode.onUserInteraction,
             child: Column(
               children: [
-                const SizedBox(height: 55),
+                const SizedBox(height: 8),
+                const Align(
+                  alignment: Alignment.centerRight,
+                  child: ThemeToggleButton(),
+                ),
+                const SizedBox(height: 39),
 
                 // Logo
                 Container(
                   width: 82,
                   height: 82,
                   decoration: BoxDecoration(
-                    color: const Color(0xFFE1F1EC),
+                    color: context.tripin.paleMint,
                     borderRadius: BorderRadius.circular(25),
                   ),
-                  child: const Icon(
+                  child: Icon(
                     Icons.travel_explore,
                     size: 47,
-                    color: Color(0xFF2E7D6B),
+                    color: context.colors.primary,
                   ),
                 ),
 
                 const SizedBox(height: 20),
 
-                const Text(
+                Text(
                   'TRIPIN',
                   style: TextStyle(
                     fontSize: 30,
                     fontWeight: FontWeight.bold,
-                    color: Color(0xFF2E7D6B),
+                    color: context.colors.primary,
                     letterSpacing: 2,
                   ),
                 ),
 
                 const SizedBox(height: 8),
 
-                const Text(
+                Text(
                   'Temukan destinasi impianmu',
                   style: TextStyle(
                     fontSize: 15,
-                    color: Colors.grey,
+                    color: context.tripin.textSecondary,
                   ),
                 ),
 
                 const SizedBox(height: 45),
 
+                Center(
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 420),
+                    child: GlassPanel(
+                      radius: Radii.xl,
+                      padding: const EdgeInsets.all(24),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
                 const Align(
                   alignment: Alignment.centerLeft,
                   child: Text(
@@ -125,12 +149,12 @@ class _LoginPageState extends State<LoginPage> {
 
                 const SizedBox(height: 8),
 
-                const Align(
+                Align(
                   alignment: Alignment.centerLeft,
                   child: Text(
                     'Masuk untuk mulai menemukan wisata menarik.',
                     style: TextStyle(
-                      color: Colors.grey,
+                      color: context.tripin.textSecondary,
                       fontSize: 14,
                     ),
                   ),
@@ -147,12 +171,6 @@ class _LoginPageState extends State<LoginPage> {
                     labelText: 'Email',
                     hintText: 'Masukkan email kamu',
                     prefixIcon: const Icon(Icons.email_outlined),
-                    filled: true,
-                    fillColor: Colors.white,
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(15),
-                      borderSide: BorderSide.none,
-                    ),
                   ),
                 ),
 
@@ -179,38 +197,18 @@ class _LoginPageState extends State<LoginPage> {
                             : Icons.visibility_outlined,
                       ),
                     ),
-                    filled: true,
-                    fillColor: Colors.white,
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(15),
-                      borderSide: BorderSide.none,
-                    ),
                   ),
                 ),
 
                 const SizedBox(height: 28),
 
                 // Tombol masuk
-                SizedBox(
-                  width: double.infinity,
-                  height: 54,
-                  child: ElevatedButton(
-                    onPressed: login,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF2E7D6B),
-                      foregroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(15),
-                      ),
-                    ),
-                    child: const Text(
-                      'Masuk',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
+                GlassButton(
+                  label: _memproses ? 'Memproses…' : 'Masuk',
+                  onPressed: _memproses ? null : login,
+                  variant: GlassButtonVariant.prominent,
+                  besar: true,
+                  melebar: true,
                 ),
 
                 const SizedBox(height: 25),
@@ -218,25 +216,34 @@ class _LoginPageState extends State<LoginPage> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const Text(
+                    Text(
                       'Belum punya akun? ',
-                      style: TextStyle(color: Colors.grey),
+                      style: TextStyle(color: context.tripin.textSecondary),
                     ),
                     GestureDetector(
+                      behavior: HitTestBehavior.opaque,
                       onTap: () {
                         Navigator.pushNamed(context, AppRoutes.register);
                       },
-                      child: const Text(
-                        'Daftar',
-                        style: TextStyle(
-                          color: Color(0xFF2E7D6B),
-                          fontWeight: FontWeight.bold,
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        child: Text(
+                          'Daftar',
+                          style: TextStyle(
+                            color: context.colors.primary,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                       ),
                     ),
                   ],
                 ),
 
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
                 const SizedBox(height: 30),
               ],
             ),

@@ -4,6 +4,10 @@ import '../../providers/destinasi_provider.dart';
 import '../../routes/app_routes.dart';
 import '../../widgets/destinasi_card.dart';
 import '../../widgets/kategori_chip.dart';
+import '../../widgets/glass_scaffold.dart';
+import '../../widgets/glass_app_bar.dart';
+import '../../widgets/glass_insets.dart';
+import '../../widgets/keadaan_kosong.dart';
 
 class DaftarDestinasiScreen extends StatefulWidget {
   const DaftarDestinasiScreen({super.key});
@@ -30,8 +34,8 @@ class _DaftarDestinasiScreenState extends State<DaftarDestinasiScreen> {
       kategoriId: selectedKategoriId,
     );
 
-    return Scaffold(
-      appBar: AppBar(title: const Text('Daftar Destinasi')),
+    return GlassScaffold(
+      appBar: const GlassAppBar(judul: 'Jelajah'),
       body: Column(
         children: [
           Padding(
@@ -39,15 +43,9 @@ class _DaftarDestinasiScreenState extends State<DaftarDestinasiScreen> {
             child: TextField(
               controller: searchController,
               onChanged: (_) => setState(() {}),
-              decoration: InputDecoration(
+              decoration: const InputDecoration(
                 hintText: 'Cari destinasi...',
-                prefixIcon: const Icon(Icons.search),
-                filled: true,
-                fillColor: Colors.white,
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(14),
-                  borderSide: BorderSide.none,
-                ),
+                prefixIcon: Icon(Icons.search),
               ),
             ),
           ),
@@ -60,12 +58,9 @@ class _DaftarDestinasiScreenState extends State<DaftarDestinasiScreen> {
               children: [
                 Padding(
                   padding: const EdgeInsets.only(right: 8),
-                  child: ChoiceChip(
-                    label: const Text('Semua'),
+                  child: SemuaChip(
                     selected: selectedKategoriId == null,
-                    onSelected: (_) =>
-                        setState(() => selectedKategoriId = null),
-                    showCheckmark: false,
+                    onTap: () => setState(() => selectedKategoriId = null),
                   ),
                 ),
                 for (final kategori in provider.daftarKategori)
@@ -84,9 +79,18 @@ class _DaftarDestinasiScreenState extends State<DaftarDestinasiScreen> {
           const SizedBox(height: 12),
           Expanded(
             child: daftar.isEmpty
-                ? const Center(child: Text('Tidak ada destinasi yang cocok'))
+                ? KeadaanKosong(
+                    ikon: Icons.search_off,
+                    judul: 'Tidak ada yang cocok',
+                    pesan: 'Coba kata kunci lain atau hapus filter kategori.',
+                    labelAksi: 'Hapus filter',
+                    onAksi: () => setState(() {
+                      searchController.clear();
+                      selectedKategoriId = null;
+                    }),
+                  )
                 : ListView.builder(
-                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                    padding: EdgeInsets.fromLTRB(16, 0, 16, 16 + GlassInsets.bawahOf(context)),
                     itemCount: daftar.length,
                     itemBuilder: (context, index) {
                       final destinasi = daftar[index];

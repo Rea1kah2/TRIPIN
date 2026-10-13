@@ -1,5 +1,6 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import '../theme/app_colors.dart';
 
 class SafeNetworkImage extends StatelessWidget {
   final String url;
@@ -17,6 +18,8 @@ class SafeNetworkImage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final placeholder = context.tripin.imagePlaceholder;
+
     return CachedNetworkImage(
       imageUrl: url,
       width: width,
@@ -25,7 +28,7 @@ class SafeNetworkImage extends StatelessWidget {
       placeholder: (context, url) => Container(
         width: width,
         height: height,
-        color: Colors.grey.shade200,
+        color: placeholder,
         child: const Center(
           child: SizedBox(
             width: 20,
@@ -37,8 +40,8 @@ class SafeNetworkImage extends StatelessWidget {
       errorWidget: (context, url, error) => Container(
         width: width,
         height: height,
-        color: Colors.grey.shade200,
-        child: const Icon(Icons.broken_image, color: Colors.grey),
+        color: placeholder,
+        child: Icon(Icons.broken_image, color: context.tripin.textSecondary),
       ),
     );
   }

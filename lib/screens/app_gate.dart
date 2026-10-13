@@ -3,8 +3,10 @@ import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
 import '../providers/destinasi_provider.dart';
 import '../providers/rencana_provider.dart';
+import '../providers/theme_provider.dart';
 import '../widgets/bottom_nav_shell.dart';
 import 'auth/login_screen.dart';
+import '../widgets/glass_scaffold.dart';
 
 class AppGate extends StatelessWidget {
   const AppGate({super.key});
@@ -15,8 +17,13 @@ class AppGate extends StatelessWidget {
     final destinasi = context.watch<DestinasiProvider>();
     final rencana = context.watch<RencanaProvider>();
 
-    if (auth.isLoading || destinasi.isLoading || rencana.isLoading) {
-      return const Scaffold(
+    final theme = context.watch<ThemeProvider>();
+
+    if (auth.isLoading ||
+        destinasi.isLoading ||
+        rencana.isLoading ||
+        theme.isLoading) {
+      return const GlassScaffold(
         body: Center(child: CircularProgressIndicator()),
       );
     }
