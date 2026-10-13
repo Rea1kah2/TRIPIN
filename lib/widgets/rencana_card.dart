@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import '../models/rencana_perjalanan.dart';
 import '../theme/app_colors.dart';
 import '../utils/formatters.dart';
-import 'glass_card.dart';
+import 'glass_panel.dart';
+import 'pressable_scale.dart';
 
 class RencanaCard extends StatelessWidget {
   final RencanaPerjalanan rencana;
@@ -18,9 +19,11 @@ class RencanaCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
+    final textSecondary = context.tripin.textSecondary;
+
+    return PressableScale(
       onTap: onTap,
-      child: GlassCard(
+      child: GlassPanel(
         child: Row(
           children: [
             Expanded(
@@ -29,25 +32,24 @@ class RencanaCard extends StatelessWidget {
                 children: [
                   Text(rencana.judul,
                       style: const TextStyle(
-                          fontSize: 16, fontWeight: FontWeight.bold)),
+                          fontSize: 17, fontWeight: FontWeight.w600)),
                   const SizedBox(height: 6),
                   Text(
                     '${formatTanggal(rencana.tanggalMulai)} - ${formatTanggal(rencana.tanggalSelesai)}',
-                    style: const TextStyle(
-                        color: AppColors.textSecondary, fontSize: 12),
+                    style: TextStyle(color: textSecondary, fontSize: 13),
                   ),
                   const SizedBox(height: 4),
                   Text(
                     '$jumlahDestinasi destinasi',
-                    style: const TextStyle(
-                        color: AppColors.primary,
+                    style: TextStyle(
+                        color: context.colors.primary,
                         fontSize: 12,
                         fontWeight: FontWeight.w600),
                   ),
                 ],
               ),
             ),
-            const Icon(Icons.arrow_forward_ios, size: 15, color: Colors.grey),
+            Icon(Icons.arrow_forward_ios, size: 15, color: textSecondary),
           ],
         ),
       ),

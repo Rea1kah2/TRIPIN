@@ -5,10 +5,16 @@ class Destinasi {
   final String kategoriId;
   final double rating;
   final int price;
-  final String imageUrl;
+  /// Foto asli (aset). Kosong = belum ada foto; UI menampilkan penanda, bukan foto asal.
+  final List<String> fotoAssets;
   final String description;
-  final double distanceKm;
+  /// Koordinat (WGS84). [lokasiPerkiraan] = titik mewakili area/kawasan, bukan pintu masuk pasti.
+  final double lat;
+  final double lng;
+  final bool lokasiPerkiraan;
   final bool isFavorit;
+
+  String? get fotoUtama => fotoAssets.isEmpty ? null : fotoAssets.first;
 
   const Destinasi({
     required this.id,
@@ -17,9 +23,11 @@ class Destinasi {
     required this.kategoriId,
     required this.rating,
     required this.price,
-    required this.imageUrl,
+    this.fotoAssets = const [],
     required this.description,
-    required this.distanceKm,
+    required this.lat,
+    required this.lng,
+    this.lokasiPerkiraan = false,
     this.isFavorit = false,
   });
 
@@ -29,9 +37,11 @@ class Destinasi {
     String? kategoriId,
     double? rating,
     int? price,
-    String? imageUrl,
+    List<String>? fotoAssets,
     String? description,
-    double? distanceKm,
+    double? lat,
+    double? lng,
+    bool? lokasiPerkiraan,
     bool? isFavorit,
   }) {
     return Destinasi(
@@ -41,9 +51,11 @@ class Destinasi {
       kategoriId: kategoriId ?? this.kategoriId,
       rating: rating ?? this.rating,
       price: price ?? this.price,
-      imageUrl: imageUrl ?? this.imageUrl,
+      fotoAssets: fotoAssets ?? this.fotoAssets,
       description: description ?? this.description,
-      distanceKm: distanceKm ?? this.distanceKm,
+      lat: lat ?? this.lat,
+      lng: lng ?? this.lng,
+      lokasiPerkiraan: lokasiPerkiraan ?? this.lokasiPerkiraan,
       isFavorit: isFavorit ?? this.isFavorit,
     );
   }

@@ -66,5 +66,13 @@
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
+	<key>NSAppTransportSecurity</key>
+	<dict>
+		<!-- Izinkan HTTP ke backend di jaringan lokal saat pengembangan; HTTPS publik tetap wajib. -->
+		<key>NSAllowsLocalNetworking</key>
+		<true/>
+	</dict>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>TRIPIN memakai lokasimu untuk menampilkan posisi di peta dan jarak ke tempat wisata.</string>
 </dict>
 </plist>

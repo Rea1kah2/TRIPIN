@@ -1,0 +1,28 @@
+{
+  "name": "tripin-backend",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Backend chatbot AI untuk aplikasi TRIPIN (Gemini + function calling)",
+  "scripts": {
+    "dev": "tsx watch src/server.ts",
+    "start": "tsx src/server.ts",
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@fastify/cors": "^11.3.0",
+    "@fastify/rate-limit": "^11.2.0",
+    "@google/genai": "^2.26.0",
+    "dotenv": "^18.0.5",
+    "fastify": "^5.12.5",
+    "zod": "^4.6.5"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.4",
+    "tsx": "^4.23.15",
+    "typescript": "^7.0.2",
+    "vitest": "^5.0.3"
+  }
+}

@@ -5,7 +5,9 @@ import 'package:provider/provider.dart';
 import '../../models/destinasi.dart';
 import '../../providers/destinasi_provider.dart';
 import '../../theme/app_colors.dart';
-import '../../widgets/safe_network_image.dart';
+import '../../widgets/destinasi_image.dart';
+import '../../widgets/glass_app_bar.dart';
+import '../../widgets/glass_scaffold.dart';
 import '../../widgets/rating_stars.dart';
 import 'detail_destinasi_screen.dart';
 
@@ -92,15 +94,8 @@ class _PencarianRekomendasiScreenState
       ...provider.daftarKategori.map((kategori) => kategori.nama),
     ];
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text(
-          'Cari Wisata',
-          style: TextStyle(fontWeight: FontWeight.bold),
-        ),
-        backgroundColor: AppColors.primary,
-        foregroundColor: Colors.white,
-      ),
+    return GlassScaffold(
+      appBar: const GlassAppBar(judul: 'Cari Wisata'),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
@@ -159,11 +154,11 @@ class _PencarianRekomendasiScreenState
                 return ChoiceChip(
                   label: Text(kategori),
                   selected: terpilih,
-                  selectedColor: AppColors.primary,
+                  selectedColor: context.colors.primary,
                   labelStyle: TextStyle(
                     color: terpilih
-                        ? Colors.white
-                        : Colors.black87,
+                        ? context.colors.onPrimary
+                        : context.colors.onSurface,
                   ),
                   onSelected: (_) {
                     setState(() {
@@ -190,7 +185,7 @@ class _PencarianRekomendasiScreenState
             const SizedBox(height: 12),
 
             SizedBox(
-              height: 245,
+              height: 270,
               child: ListView.separated(
                 scrollDirection: Axis.horizontal,
                 itemCount: limaRekomendasi.length,
@@ -321,8 +316,8 @@ class _KartuDestinasi extends StatelessWidget {
             SizedBox(
               width: 125,
               height: 145,
-              child: SafeNetworkImage(
-                url: destinasi.imageUrl,
+              child: DestinasiImage(
+                aset: destinasi.fotoUtama,
                 width: 125,
                 height: 145,
               ),
@@ -344,8 +339,8 @@ class _KartuDestinasi extends StatelessWidget {
             SizedBox(
               height: 125,
               width: double.infinity,
-              child: SafeNetworkImage(
-                url: destinasi.imageUrl,
+              child: DestinasiImage(
+                aset: destinasi.fotoUtama,
                 width: double.infinity,
                 height: 125,
               ),
@@ -401,8 +396,8 @@ class _InformasiDestinasi extends StatelessWidget {
         const SizedBox(height: 5),
         Text(
           kategori,
-          style: const TextStyle(
-            color: AppColors.primary,
+          style: TextStyle(
+            color: context.colors.primary,
             fontSize: 12,
           ),
         ),

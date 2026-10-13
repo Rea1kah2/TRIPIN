@@ -68,4 +68,18 @@ class RencanaProvider extends ChangeNotifier {
         rencana.daftarDestinasiId.where((id) => id != destinasiId).toList();
     perbaruiRencana(rencana.copyWith(daftarDestinasiId: daftarBaru));
   }
+
+  /// Memindahkan destinasi pada urutan kunjungan. [indeksBaru] memakai konvensi
+  /// ReorderableListView (indeks sebelum item lama dicabut).
+  void urutUlangDestinasi(String rencanaId, int indeksLama, int indeksBaru) {
+    final rencana = getById(rencanaId);
+    if (rencana == null) return;
+    final daftar = [...rencana.daftarDestinasiId];
+    if (indeksLama < 0 || indeksLama >= daftar.length) return;
+    if (indeksBaru > indeksLama) indeksBaru -= 1;
+    indeksBaru = indeksBaru.clamp(0, daftar.length - 1);
+    if (indeksBaru == indeksLama) return;
+    daftar.insert(indeksBaru, daftar.removeAt(indeksLama));
+    perbaruiRencana(rencana.copyWith(daftarDestinasiId: daftar));
+  }
 }

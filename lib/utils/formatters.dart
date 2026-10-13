@@ -29,3 +29,10 @@ String formatTanggal(DateTime tanggal) {
   ];
   return '${tanggal.day} ${namaBulan[tanggal.month - 1]} ${tanggal.year}';
 }
+
+/// Format YYYY-MM-DD (dipakai untuk bertukar tanggal dengan backend).
+String formatTanggalIso(DateTime tanggal) {
+  final bulan = tanggal.month.toString().padLeft(2, '0');
+  final hari = tanggal.day.toString().padLeft(2, '0');
+  return '${tanggal.year}-$bulan-$hari';
+}

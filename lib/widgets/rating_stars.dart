@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../theme/app_colors.dart';
 
 class RatingStars extends StatelessWidget {
   final double rating;
@@ -11,7 +12,7 @@ class RatingStars extends StatelessWidget {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Icon(Icons.star, size: size, color: Colors.amber),
+        Icon(Icons.star, size: size, color: context.tripin.ratingStar),
         const SizedBox(width: 4),
         Text(
           rating.toStringAsFixed(1),
