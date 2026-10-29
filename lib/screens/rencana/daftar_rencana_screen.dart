@@ -1,5 +1,7 @@
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+
 import '../../providers/rencana_provider.dart';
 import '../../routes/app_routes.dart';
 import '../../theme/app_colors.dart';
@@ -20,19 +22,43 @@ class DaftarRencanaScreen extends StatelessWidget {
 
     return GlassScaffold(
       appBar: const GlassAppBar(judul: 'Rencana Perjalanan'),
-      body: daftar.isEmpty
-          ? KeadaanKosong(
+      body: Column(
+        children: [
+          // Tombol baru: Checklist Perjalanan
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+            child: SizedBox(
+              width: double.infinity,
+              child: OutlinedButton.icon(
+                onPressed: () {
+                  Navigator.pushNamed(context, AppRoutes.checklist);
+                },
+                icon: const Icon(Icons.checklist_rounded),
+                label: const Text('Checklist Persiapan Perjalanan'),
+              ),
+            ),
+          ),
+
+          // Daftar rencana yang sudah ada
+          Expanded(
+            child: daftar.isEmpty
+                ? KeadaanKosong(
               ikon: Icons.map_outlined,
               judul: 'Belum ada rencana',
-              pesan: 'Susun perjalanan pertamamu, atau minta Tripy menyusunkannya.',
+              pesan:
+              'Susun perjalanan pertamamu, atau minta Tripy menyusunnya.',
               labelAksi: 'Buat rencana',
-              onAksi: () => Navigator.pushNamed(context, AppRoutes.rencanaTambah),
+              onAksi: () => Navigator.pushNamed(
+                context,
+                AppRoutes.rencanaTambah,
+              ),
             )
-          : ListView.builder(
+                : ListView.builder(
               padding: const EdgeInsets.all(16),
               itemCount: daftar.length,
               itemBuilder: (context, index) {
                 final rencana = daftar[index];
+
                 return Padding(
                   padding: const EdgeInsets.only(bottom: 12),
                   child: Dismissible(
@@ -45,7 +71,10 @@ class DaftarRencanaScreen extends StatelessWidget {
                         color: context.colors.error,
                         borderRadius: BorderRadius.circular(20),
                       ),
-                      child: Icon(Icons.delete_outline, color: context.colors.onError),
+                      child: Icon(
+                        Icons.delete_outline,
+                        color: context.colors.onError,
+                      ),
                     ),
                     confirmDismiss: (_) => showConfirmDeleteDialog(
                       context,
@@ -57,7 +86,8 @@ class DaftarRencanaScreen extends StatelessWidget {
                     },
                     child: RencanaCard(
                       rencana: rencana,
-                      jumlahDestinasi: rencana.daftarDestinasiId.length,
+                      jumlahDestinasi:
+                      rencana.daftarDestinasiId.length,
                       onTap: () => Navigator.pushNamed(
                         context,
                         AppRoutes.rencanaDetail,
@@ -68,8 +98,14 @@ class DaftarRencanaScreen extends StatelessWidget {
                 );
               },
             ),
+          ),
+        ],
+      ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () => Navigator.pushNamed(context, AppRoutes.rencanaTambah),
+        onPressed: () => Navigator.pushNamed(
+          context,
+          AppRoutes.rencanaTambah,
+        ),
         child: const Icon(Icons.add),
       ),
     );

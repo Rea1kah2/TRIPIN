@@ -128,7 +128,7 @@ ThemeData _build({
         borderSide: BorderSide(color: scheme.primary, width: 1.5),
       ),
     ),
-    dialogTheme: DialogTheme(
+    dialogTheme: DialogThemeData(
       backgroundColor: extension.surfaceElevated,
       surfaceTintColor: Colors.transparent,
     ),
