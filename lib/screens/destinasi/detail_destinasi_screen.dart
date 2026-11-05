@@ -1,8 +1,11 @@
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+
 import '../../models/destinasi.dart';
 import '../../providers/destinasi_provider.dart';
 import '../../providers/rencana_provider.dart';
+import '../../providers/auth_provider.dart';
 import '../../routes/app_routes.dart';
 import '../../theme/app_colors.dart';
 import '../../utils/formatters.dart';
@@ -20,26 +23,36 @@ import '../../widgets/review/review_section.dart';
 import '../../providers/lokasi_provider.dart';
 import '../../utils/geo.dart';
 
-/// "Medan · 4,2 km dari kamu" (jarak nyata), atau hanya lokasi bila posisi belum diketahui.
+/// Menampilkan lokasi dan jarak destinasi dari pengguna.
 String jarakTeks(BuildContext context, Destinasi d) {
   final jarak = context.watch<LokasiProvider>().jarakKe(d);
   final perkiraan = d.lokasiPerkiraan ? ' (perkiraan)' : '';
-  return jarak == null ? d.location : '${d.location} · ${formatJarak(jarak)} dari kamu$perkiraan';
+
+  return jarak == null
+      ? d.location
+      : '${d.location} · ${formatJarak(jarak)} dari kamu$perkiraan';
 }
 
 class DetailDestinasiScreen extends StatelessWidget {
   final String destinasiId;
 
-  const DetailDestinasiScreen({super.key, required this.destinasiId});
+  const DetailDestinasiScreen({
+    super.key,
+    required this.destinasiId,
+  });
 
   String _labelKategori(BuildContext context, String kategoriId) {
-    final daftarKategori = context.watch<DestinasiProvider>().daftarKategori;
+    final daftarKategori =
+        context.watch<DestinasiProvider>().daftarKategori;
+
     for (final k in daftarKategori) {
       if (k.id == kategoriId) return k.nama;
     }
+
     return '';
   }
 
+  /// Membuka pilihan rencana perjalanan.
   void _bukaPilihRencana(BuildContext context) {
     final rencanaProvider = context.read<RencanaProvider>();
 
@@ -57,15 +70,21 @@ class DetailDestinasiScreen extends StatelessWidget {
               children: [
                 const Text(
                   'Tambah ke Rencana',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
                 const SizedBox(height: 12),
+
                 if (daftarRencana.isEmpty)
                   Padding(
                     padding: const EdgeInsets.symmetric(vertical: 12),
                     child: Text(
                       'Kamu belum punya rencana perjalanan. Buat dulu satu.',
-                      style: TextStyle(color: context.tripin.textSecondary),
+                      style: TextStyle(
+                        color: context.tripin.textSecondary,
+                      ),
                     ),
                   )
                 else
@@ -75,39 +94,51 @@ class DetailDestinasiScreen extends StatelessWidget {
                       itemCount: daftarRencana.length,
                       itemBuilder: (context, index) {
                         final rencana = daftarRencana[index];
-                        final sudahAda =
-                            rencana.daftarDestinasiId.contains(destinasiId);
+
+                        final sudahAda = rencana.daftarDestinasiId
+                            .contains(destinasiId);
+
                         return ListTile(
                           contentPadding: EdgeInsets.zero,
                           title: Text(rencana.judul),
                           trailing: sudahAda
-                              ? Icon(Icons.check_circle,
-                                  color: context.colors.primary)
+                              ? Icon(
+                            Icons.check_circle,
+                            color: context.colors.primary,
+                          )
                               : const Icon(Icons.add_circle_outline),
                           onTap: sudahAda
                               ? null
                               : () {
-                                  rencanaProvider.tambahDestinasiKeRencana(
-                                    rencana.id,
-                                    destinasiId,
-                                  );
-                                  Navigator.pop(sheetContext);
-                                  showAppSnackbar(
-                                    context,
-                                    'Ditambahkan ke "${rencana.judul}"',
-                                  );
-                                },
+                            rencanaProvider.tambahDestinasiKeRencana(
+                              rencana.id,
+                              destinasiId,
+                            );
+
+                            Navigator.pop(sheetContext);
+
+                            showAppSnackbar(
+                              context,
+                              'Ditambahkan ke "${rencana.judul}"',
+                            );
+                          },
                         );
                       },
                     ),
                   ),
+
                 const SizedBox(height: 12),
+
                 SizedBox(
                   width: double.infinity,
                   child: OutlinedButton.icon(
                     onPressed: () {
                       Navigator.pop(sheetContext);
-                      Navigator.pushNamed(context, AppRoutes.rencanaTambah);
+
+                      Navigator.pushNamed(
+                        context,
+                        AppRoutes.rencanaTambah,
+                      );
                     },
                     icon: const Icon(Icons.add),
                     label: const Text('Buat Rencana Baru'),
@@ -127,12 +158,18 @@ class DetailDestinasiScreen extends StatelessWidget {
     final destinasi = provider.getById(destinasiId);
 
     if (destinasi == null) {
-      WidgetsBinding.instance
-          .addPostFrameCallback((_) => Navigator.pop(context));
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (context.mounted) {
+          Navigator.pop(context);
+        }
+      });
+
       return const SizedBox.shrink();
     }
 
-    final labelKategori = _labelKategori(context, destinasi.kategoriId);
+    final labelKategori =
+    _labelKategori(context, destinasi.kategoriId);
+
     final primary = context.colors.primary;
     final tripin = context.tripin;
 
@@ -164,130 +201,176 @@ class DetailDestinasiScreen extends StatelessWidget {
                   ikon: destinasi.isFavorit
                       ? Icons.favorite
                       : Icons.favorite_border,
-                  warnaIkon: destinasi.isFavorit ? tripin.favoriteActive : null,
+                  warnaIkon: destinasi.isFavorit
+                      ? tripin.favoriteActive
+                      : null,
                   onTap: () => provider.toggleFavorit(destinasi.id),
                 ),
               ),
             ],
             flexibleSpace: FlexibleSpaceBar(
               background: ClipRRect(
-                // Foto berakhir melengkung; AppBar yang di-pin melukis di atas sliver berikutnya,
-                // jadi kartu info tidak boleh ditarik naik menimpa foto.
                 borderRadius: const BorderRadius.vertical(
-                    bottom: Radius.circular(Radii.xl)),
+                  bottom: Radius.circular(Radii.xl),
+                ),
                 child: DestinasiGaleri(destinasi: destinasi),
               ),
             ),
           ),
+
           SliverToBoxAdapter(
             child: Padding(
               padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
-              child: Padding(
-                padding: EdgeInsets.zero,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    GlassPanel(
-                      radius: Radii.xl,
-                      padding: const EdgeInsets.all(20),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            destinasi.name,
-                            style: const TextStyle(
-                                fontSize: 24,
-                                fontWeight: FontWeight.w700,
-                                height: 1.2),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Informasi utama destinasi.
+                  GlassPanel(
+                    radius: Radii.xl,
+                    padding: const EdgeInsets.all(20),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          destinasi.name,
+                          style: const TextStyle(
+                            fontSize: 24,
+                            fontWeight: FontWeight.w700,
+                            height: 1.2,
                           ),
-                          const SizedBox(height: 8),
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 12, vertical: 4),
-                            decoration: BoxDecoration(
-                              color: primary.withOpacity(0.16),
-                              borderRadius: BorderRadius.circular(999),
+                        ),
+
+                        const SizedBox(height: 8),
+
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 4,
+                          ),
+                          decoration: BoxDecoration(
+                            color: primary.withOpacity(0.16),
+                            borderRadius: BorderRadius.circular(999),
+                          ),
+                          child: Text(
+                            labelKategori,
+                            style: TextStyle(
+                              color: primary,
+                              fontWeight: FontWeight.w600,
+                              fontSize: 13,
                             ),
-                            child: Text(
-                              labelKategori,
-                              style: TextStyle(
-                                  color: primary,
-                                  fontWeight: FontWeight.w600,
-                                  fontSize: 13),
+                          ),
+                        ),
+
+                        const SizedBox(height: 12),
+
+                        Row(
+                          children: [
+                            Icon(
+                              Icons.location_on_outlined,
+                              size: 16,
+                              color: tripin.textSecondary,
                             ),
-                          ),
-                          const SizedBox(height: 12),
-                          Row(
-                            children: [
-                              Icon(Icons.location_on_outlined,
-                                  size: 16, color: tripin.textSecondary),
-                              const SizedBox(width: 4),
-                              Expanded(
-                                child: Text(
-                                  jarakTeks(context, destinasi),
-                                  style: angkaTabular.copyWith(
-                                      color: tripin.textSecondary,
-                                      fontSize: 13),
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 12),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              RatingStars(rating: context.watch<ReviewProvider>().ratingTampil(destinasi), size: 18),
-                              Text(
-                                formatRupiah(destinasi.price),
+                            const SizedBox(width: 4),
+                            Expanded(
+                              child: Text(
+                                jarakTeks(context, destinasi),
                                 style: angkaTabular.copyWith(
-                                  color: primary,
-                                  fontWeight: FontWeight.w700,
-                                  fontSize: 17,
+                                  color: tripin.textSecondary,
+                                  fontSize: 13,
                                 ),
                               ),
-                            ],
-                          ),
-                        ],
-                      ),
+                            ),
+                          ],
+                        ),
+
+                        const SizedBox(height: 12),
+
+                        Row(
+                          mainAxisAlignment:
+                          MainAxisAlignment.spaceBetween,
+                          children: [
+                            RatingStars(
+                              rating: context
+                                  .watch<ReviewProvider>()
+                                  .ratingTampil(destinasi),
+                              size: 18,
+                            ),
+                            Text(
+                              formatRupiah(destinasi.price),
+                              style: angkaTabular.copyWith(
+                                color: primary,
+                                fontWeight: FontWeight.w700,
+                                fontSize: 17,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
                     ),
-                    const SizedBox(height: 24),
-                    const Text('Tentang Destinasi',
-                        style: TextStyle(
-                            fontSize: 18, fontWeight: FontWeight.w600)),
-                    const SizedBox(height: 8),
-                    Text(
-                      destinasi.description,
-                      style: TextStyle(
-                          color: context.colors.onSurface.withOpacity(0.87),
-                          height: 1.55,
-                          fontSize: 15),
+                  ),
+
+                  const SizedBox(height: 24),
+
+                  const Text(
+                    'Tentang Destinasi',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w600,
                     ),
-                    const SizedBox(height: 24),
-                    ReviewSection(destinasi: destinasi),
-                    const SizedBox(height: 28),
-                    GlassButton(
-                      label: 'Tambah ke Rencana',
-                      icon: Icons.map_outlined,
-                      variant: GlassButtonVariant.prominent,
-                      besar: true,
-                      melebar: true,
-                      onPressed: () => _bukaPilihRencana(context),
+                  ),
+
+                  const SizedBox(height: 8),
+
+                  Text(
+                    destinasi.description,
+                    style: TextStyle(
+                      color: context.colors.onSurface.withOpacity(0.87),
+                      height: 1.55,
+                      fontSize: 15,
                     ),
-                    const SizedBox(height: 12),
-                    GlassButton(
-                      label: 'Tanya Tripy tentang tempat ini',
-                      icon: Icons.auto_awesome,
-                      melebar: true,
-                      onPressed: () => Navigator.pushNamed(
-                        context,
-                        AppRoutes.chat,
-                        arguments:
-                            'Ceritakan tentang ${destinasi.name} dan apa yang bisa dilakukan di sana.',
-                      ),
+                  ),
+
+                  const SizedBox(height: 24),
+
+                  // Bagian ulasan destinasi.
+                  ReviewSection(destinasi: destinasi),
+
+                  const SizedBox(height: 28),
+
+                  // FITUR BARU: Riwayat destinasi yang dikunjungi.
+                  TombolRiwayatKunjungan(
+                    destinasiId: destinasi.id,
+                  ),
+
+                  const SizedBox(height: 12),
+
+                  // Fitur lama: Tambah ke Rencana.
+                  GlassButton(
+                    label: 'Tambah ke Rencana',
+                    icon: Icons.map_outlined,
+                    variant: GlassButtonVariant.prominent,
+                    besar: true,
+                    melebar: true,
+                    onPressed: () => _bukaPilihRencana(context),
+                  ),
+
+                  const SizedBox(height: 12),
+
+                  // Fitur lama: Tanya Tripy.
+                  GlassButton(
+                    label: 'Tanya Tripy tentang tempat ini',
+                    icon: Icons.auto_awesome,
+                    melebar: true,
+                    onPressed: () => Navigator.pushNamed(
+                      context,
+                      AppRoutes.chat,
+                      arguments:
+                      'Ceritakan tentang ${destinasi.name} dan apa yang bisa dilakukan di sana.',
                     ),
-                    const SizedBox(height: 32),
-                  ],
-                ),
+                  ),
+
+                  const SizedBox(height: 32),
+                ],
               ),
             ),
           ),
@@ -297,7 +380,120 @@ class DetailDestinasiScreen extends StatelessWidget {
   }
 }
 
-/// Tombol bulat kaca di atas foto (tampil 40, area sentuh 48).
+/// Tombol untuk menandai destinasi yang benar-benar sudah dikunjungi.
+class TombolRiwayatKunjungan extends StatefulWidget {
+  final String destinasiId;
+
+  const TombolRiwayatKunjungan({
+    super.key,
+    required this.destinasiId,
+  });
+
+  @override
+  State<TombolRiwayatKunjungan> createState() =>
+      _TombolRiwayatKunjunganState();
+}
+
+class _TombolRiwayatKunjunganState
+    extends State<TombolRiwayatKunjungan> {
+  bool _memuat = true;
+  bool _menyimpan = false;
+
+  @override
+  void initState() {
+    super.initState();
+
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      if (!mounted) return;
+
+      final userId =
+          context.read<AuthProvider>().currentUser?.id;
+
+      if (userId != null) {
+        await context
+            .read<DestinasiProvider>()
+            .muatRiwayatKunjungan(userId);
+      }
+
+      if (mounted) {
+        setState(() {
+          _memuat = false;
+        });
+      }
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final userId =
+        context.watch<AuthProvider>().currentUser?.id;
+
+    final provider = context.watch<DestinasiProvider>();
+
+    final sudahDikunjungi = userId != null &&
+        provider.sudahDikunjungi(widget.destinasiId);
+
+    return GlassButton(
+      label: _memuat
+          ? 'Memuat Riwayat...'
+          : _menyimpan
+          ? 'Menyimpan...'
+          : sudahDikunjungi
+          ? 'Sudah Dikunjungi'
+          : 'Tandai Sudah Dikunjungi',
+      icon: sudahDikunjungi
+          ? Icons.check_circle
+          : Icons.history,
+      melebar: true,
+      onPressed: () async {
+        if (_memuat || _menyimpan || sudahDikunjungi) {
+          return;
+        }
+
+        if (userId == null) {
+          showAppSnackbar(
+            context,
+            'Silakan login terlebih dahulu.',
+          );
+          return;
+        }
+
+        setState(() {
+          _menyimpan = true;
+        });
+
+        try {
+          await provider.tandaiSudahDikunjungi(
+            userId,
+            widget.destinasiId,
+          );
+
+          if (!mounted) return;
+
+          showAppSnackbar(
+            context,
+            'Destinasi berhasil ditambahkan ke riwayat kunjungan!',
+          );
+        } catch (e) {
+          if (!mounted) return;
+
+          showAppSnackbar(
+            context,
+            'Riwayat kunjungan gagal disimpan.',
+          );
+        } finally {
+          if (mounted) {
+            setState(() {
+              _menyimpan = false;
+            });
+          }
+        }
+      },
+    );
+  }
+}
+
+/// Tombol bulat kaca di atas foto.
 class _TombolBulatKaca extends StatelessWidget {
   final String tooltip;
   final IconData ikon;
@@ -331,8 +527,11 @@ class _TombolBulatKaca extends StatelessWidget {
               child: SizedBox(
                 width: 40,
                 height: 40,
-                child: Icon(ikon,
-                    size: 22, color: warnaIkon ?? context.colors.onSurface),
+                child: Icon(
+                  ikon,
+                  size: 22,
+                  color: warnaIkon ?? context.colors.onSurface,
+                ),
               ),
             ),
           ),
