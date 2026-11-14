@@ -9,17 +9,47 @@ class RencanaProvider extends ChangeNotifier {
   List<RencanaPerjalanan> _daftarRencana = [];
   bool isLoading = true;
 
+  String? _userId;
+  bool _sudahDimuat = false;
+  bool _sedangMemuat = false;
+  int _generasi = 0;
+  bool _disposed = false;
+
+  @override
+  void dispose() {
+    _disposed = true;
+    super.dispose();
+  }
+
   List<RencanaPerjalanan> get daftarRencana =>
       List.unmodifiable(_daftarRencana);
 
+  /// Sinkronisasi akun aktif agar rencana perjalanan terisolasi per pengguna.
+  Future<void> gantiUser(String? userId) async {
+    if (userId == _userId && (_sudahDimuat || _sedangMemuat)) return;
+    _userId = userId;
+    await muatData();
+  }
+
   Future<void> muatData() async {
-    final sudahDiinisialisasi = await _storage.rencanaSudahDiinisialisasi();
+    final targetUserId = _userId;
+    final generasi = ++_generasi;
+    _sedangMemuat = true;
+
+    final sudahDiinisialisasi =
+        await _storage.rencanaSudahDiinisialisasi(userId: targetUserId);
+    if (_disposed || generasi != _generasi) return;
+
     if (!sudahDiinisialisasi) {
       _daftarRencana = List.from(dummyRencanaList);
-      await _storage.simpanRencana(_daftarRencana);
+      await _storage.simpanRencana(_daftarRencana, userId: targetUserId);
     } else {
-      _daftarRencana = await _storage.muatRencana();
+      _daftarRencana = await _storage.muatRencana(userId: targetUserId);
     }
+    if (_disposed || generasi != _generasi) return;
+
+    _sudahDimuat = true;
+    _sedangMemuat = false;
     isLoading = false;
     notifyListeners();
   }
@@ -34,7 +64,7 @@ class RencanaProvider extends ChangeNotifier {
   void tambahRencana(RencanaPerjalanan rencana) {
     _daftarRencana.add(rencana);
     notifyListeners();
-    _storage.simpanRencana(_daftarRencana);
+    _storage.simpanRencana(_daftarRencana, userId: _userId);
   }
 
   void perbaruiRencana(RencanaPerjalanan rencana) {
@@ -42,13 +72,13 @@ class RencanaProvider extends ChangeNotifier {
     if (index == -1) return;
     _daftarRencana[index] = rencana;
     notifyListeners();
-    _storage.simpanRencana(_daftarRencana);
+    _storage.simpanRencana(_daftarRencana, userId: _userId);
   }
 
   void hapusRencana(String id) {
     _daftarRencana.removeWhere((r) => r.id == id);
     notifyListeners();
-    _storage.simpanRencana(_daftarRencana);
+    _storage.simpanRencana(_daftarRencana, userId: _userId);
   }
 
   void tambahDestinasiKeRencana(String rencanaId, String destinasiId) {

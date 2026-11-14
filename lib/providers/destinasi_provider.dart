@@ -13,9 +13,21 @@ class DestinasiProvider extends ChangeNotifier {
   final List<Kategori> daftarKategori = dummyKategoriList;
   bool isLoading = true;
 
+  String? _userId;
+  bool _sudahDimuat = false;
+  bool _sedangMemuat = false;
+  int _generasi = 0;
+  bool _disposed = false;
+
   // Data riwayat kunjungan.
   Map<String, DateTime> _riwayatKunjungan = {};
   String? _riwayatUserId;
+
+  @override
+  void dispose() {
+    _disposed = true;
+    super.dispose();
+  }
 
   List<Destinasi> get daftarDestinasi =>
       List.unmodifiable(_daftarDestinasi);
@@ -29,7 +41,7 @@ class DestinasiProvider extends ChangeNotifier {
 
     // Urutkan berdasarkan tanggal kunjungan terbaru.
     daftarId.sort(
-          (a, b) => b.value.compareTo(a.value),
+      (a, b) => b.value.compareTo(a.value),
     );
 
     return daftarId
@@ -48,18 +60,38 @@ class DestinasiProvider extends ChangeNotifier {
     return _riwayatKunjungan.containsKey(destinasiId);
   }
 
-  // Memuat data destinasi dan favorit.
+  /// Sinkronisasi akun aktif agar favorit & riwayat terisolasi per pengguna.
+  Future<void> gantiUser(String? userId) async {
+    if (userId == _userId && (_sudahDimuat || _sedangMemuat)) return;
+    _userId = userId;
+    await muatData();
+  }
+
+  // Memuat data destinasi, favorit, dan riwayat kunjungan untuk akun aktif.
   Future<void> muatData() async {
-    final favoritIds = await _storage.muatFavoritIds();
+    final targetUserId = _userId;
+    final generasi = ++_generasi;
+    _sedangMemuat = true;
+
+    final favoritIds = await _storage.muatFavoritIds(userId: targetUserId);
+    final riwayat = (targetUserId == null || targetUserId.isEmpty)
+        ? <String, DateTime>{}
+        : await _storage.muatRiwayatKunjungan(targetUserId);
+
+    if (_disposed || generasi != _generasi) return;
 
     _daftarDestinasi = dummyDestinasiList
         .map(
           (d) => d.copyWith(
-        isFavorit: favoritIds.contains(d.id),
-      ),
-    )
+            isFavorit: favoritIds.contains(d.id),
+          ),
+        )
         .toList();
+    _riwayatUserId = targetUserId;
+    _riwayatKunjungan = riwayat;
 
+    _sudahDimuat = true;
+    _sedangMemuat = false;
     isLoading = false;
     notifyListeners();
   }
@@ -68,10 +100,9 @@ class DestinasiProvider extends ChangeNotifier {
   Future<void> muatRiwayatKunjungan(String userId) async {
     _riwayatUserId = userId;
 
-    _riwayatKunjungan =
-    await _storage.muatRiwayatKunjungan(userId);
+    _riwayatKunjungan = await _storage.muatRiwayatKunjungan(userId);
 
-    notifyListeners();
+    if (!_disposed) notifyListeners();
   }
 
   // Memastikan riwayat yang digunakan sesuai akun aktif.
@@ -83,9 +114,9 @@ class DestinasiProvider extends ChangeNotifier {
 
   // Menandai destinasi sebagai sudah dikunjungi.
   Future<void> tandaiSudahDikunjungi(
-      String userId,
-      String destinasiId,
-      ) async {
+    String userId,
+    String destinasiId,
+  ) async {
     if (getById(destinasiId) == null) return;
 
     await _pastikanRiwayatDimuat(userId);
@@ -97,14 +128,14 @@ class DestinasiProvider extends ChangeNotifier {
       _riwayatKunjungan,
     );
 
-    notifyListeners();
+    if (!_disposed) notifyListeners();
   }
 
   // Membatalkan status sudah dikunjungi.
   Future<void> batalkanKunjungan(
-      String userId,
-      String destinasiId,
-      ) async {
+    String userId,
+    String destinasiId,
+  ) async {
     await _pastikanRiwayatDimuat(userId);
 
     if (!_riwayatKunjungan.containsKey(destinasiId)) return;
@@ -116,7 +147,19 @@ class DestinasiProvider extends ChangeNotifier {
       _riwayatKunjungan,
     );
 
-    notifyListeners();
+    if (!_disposed) notifyListeners();
+  }
+
+  /// Menandai atau membatalkan status kunjungan dan mengembalikan status akhir.
+  Future<bool> toggleKunjungan(String userId, String destinasiId) async {
+    await _pastikanRiwayatDimuat(userId);
+    if (sudahDikunjungi(destinasiId)) {
+      await batalkanKunjungan(userId, destinasiId);
+      return false;
+    } else {
+      await tandaiSudahDikunjungi(userId, destinasiId);
+      return true;
+    }
   }
 
   Destinasi? getById(String id) {
@@ -130,10 +173,11 @@ class DestinasiProvider extends ChangeNotifier {
     String? query,
     String? kategoriId,
   }) {
+    final q = query?.trim().toLowerCase() ?? '';
     return _daftarDestinasi.where((d) {
-      final cocokQuery = query == null ||
-          query.isEmpty ||
-          d.name.toLowerCase().contains(query.toLowerCase());
+      final cocokQuery = q.isEmpty ||
+          d.name.toLowerCase().contains(q) ||
+          d.location.toLowerCase().contains(q);
 
       final cocokKategori =
           kategoriId == null || d.kategoriId == kategoriId;
@@ -146,13 +190,13 @@ class DestinasiProvider extends ChangeNotifier {
     final salinan = List<Destinasi>.from(_daftarDestinasi);
 
     salinan.sort(
-          (a, b) => b.rating.compareTo(a.rating),
+      (a, b) => b.rating.compareTo(a.rating),
     );
 
     return salinan;
   }
 
-  // Fitur favorit lama tetap dipertahankan.
+  // Toggle status favorit dan simpan sesuai user aktif.
   void toggleFavorit(String id) {
     final index = _daftarDestinasi.indexWhere((d) => d.id == id);
 
@@ -171,6 +215,6 @@ class DestinasiProvider extends ChangeNotifier {
         .map((d) => d.id)
         .toSet();
 
-    _storage.simpanFavoritIds(favoritIds);
+    _storage.simpanFavoritIds(favoritIds, userId: _userId);
   }
 }

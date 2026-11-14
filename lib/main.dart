@@ -29,8 +29,16 @@ class TripinApp extends StatelessWidget {
     return MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => AuthProvider()..muatData()),
-        ChangeNotifierProvider(create: (_) => DestinasiProvider()..muatData()),
-        ChangeNotifierProvider(create: (_) => RencanaProvider()..muatData()),
+        ChangeNotifierProxyProvider<AuthProvider, DestinasiProvider>(
+          create: (_) => DestinasiProvider()..muatData(),
+          update: (_, auth, destinasi) =>
+              destinasi!..gantiUser(auth.currentUser?.id),
+        ),
+        ChangeNotifierProxyProvider<AuthProvider, RencanaProvider>(
+          create: (_) => RencanaProvider()..muatData(),
+          update: (_, auth, rencana) =>
+              rencana!..gantiUser(auth.currentUser?.id),
+        ),
         ChangeNotifierProvider(create: (_) => ThemeProvider()..muatData()),
         ChangeNotifierProvider(create: (_) => ReviewProvider()..muatData()),
         ChangeNotifierProvider(create: (_) => LokasiProvider()),

@@ -117,7 +117,8 @@ class _RegisterPageState extends State<RegisterPage> {
                   'Buat Akun',
                   style: TextStyle(
                     fontSize: 28,
-                    fontWeight: FontWeight.bold,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: -0.4,
                   ),
                 ),
                 const SizedBox(height: 8),

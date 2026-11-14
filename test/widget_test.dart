@@ -14,7 +14,7 @@ void main() {
     await tester.pumpAndSettle(); // tunggu AppGate selesai memuat data lokal
 
     expect(find.text('TRIPIN'), findsOneWidget);
-    expect(find.text('Selamat Datang 👋'), findsOneWidget);
+    expect(find.text('Selamat Datang'), findsOneWidget);
     expect(find.widgetWithText(GlassButton, 'Masuk'), findsOneWidget);
   });
 }

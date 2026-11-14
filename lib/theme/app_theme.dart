@@ -79,6 +79,70 @@ ThemeData _build({
     fontFamily: appFontFamily,
     scaffoldBackgroundColor: background,
     extensions: [extension, glass],
+    textTheme: TextTheme(
+      headlineLarge: TextStyle(
+        fontSize: 28,
+        fontWeight: FontWeight.w800,
+        letterSpacing: -0.5,
+        height: 1.15,
+        color: scheme.onSurface,
+      ),
+      headlineMedium: TextStyle(
+        fontSize: 24,
+        fontWeight: FontWeight.w800,
+        letterSpacing: -0.5,
+        height: 1.15,
+        color: scheme.onSurface,
+      ),
+      headlineSmall: TextStyle(
+        fontSize: 20,
+        fontWeight: FontWeight.w800,
+        letterSpacing: -0.4,
+        height: 1.2,
+        color: scheme.onSurface,
+      ),
+      titleLarge: TextStyle(
+        fontSize: 19,
+        fontWeight: FontWeight.w700,
+        letterSpacing: -0.3,
+        height: 1.25,
+        color: scheme.onSurface,
+      ),
+      titleMedium: TextStyle(
+        fontSize: 16,
+        fontWeight: FontWeight.w700,
+        letterSpacing: -0.25,
+        height: 1.3,
+        color: scheme.onSurface,
+      ),
+      titleSmall: TextStyle(
+        fontSize: 14,
+        fontWeight: FontWeight.w600,
+        letterSpacing: -0.15,
+        height: 1.3,
+        color: scheme.onSurface,
+      ),
+      bodyLarge: TextStyle(
+        fontSize: 15,
+        height: 1.5,
+        color: scheme.onSurface,
+      ),
+      bodyMedium: TextStyle(
+        fontSize: 14,
+        height: 1.5,
+        color: scheme.onSurface,
+      ),
+      bodySmall: TextStyle(
+        fontSize: 12,
+        height: 1.4,
+        color: scheme.onSurfaceVariant,
+      ),
+      labelSmall: TextStyle(
+        fontSize: 11,
+        height: 1.4,
+        color: scheme.onSurfaceVariant,
+      ),
+    ),
     appBarTheme: AppBarTheme(
       backgroundColor: Colors.transparent,
       foregroundColor: scheme.onSurface,
@@ -127,10 +191,6 @@ ThemeData _build({
         borderRadius: BorderRadius.circular(15),
         borderSide: BorderSide(color: scheme.primary, width: 1.5),
       ),
-    ),
-    dialogTheme: DialogThemeData(
-      backgroundColor: extension.surfaceElevated,
-      surfaceTintColor: Colors.transparent,
     ),
     bottomSheetTheme: BottomSheetThemeData(
       backgroundColor: extension.surfaceElevated,

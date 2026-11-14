@@ -43,7 +43,7 @@ void main() {
       await tester.pumpWidget(const TripinApp());
       await tester.pumpAndSettle();
 
-      final context = tester.element(find.text('Selamat Datang 👋'));
+      final context = tester.element(find.text('Selamat Datang'));
       expect(Theme.of(context).brightness, Brightness.dark);
       expect(Theme.of(context).scaffoldBackgroundColor,
           const Color(0xFF0F1512));
@@ -56,13 +56,13 @@ void main() {
       await tester.pumpWidget(const TripinApp());
       await tester.pumpAndSettle();
 
-      var context = tester.element(find.text('Selamat Datang 👋'));
+      var context = tester.element(find.text('Selamat Datang'));
       expect(Theme.of(context).brightness, Brightness.light);
 
       await tester.tap(find.byTooltip('Ganti ke mode gelap'));
       await tester.pumpAndSettle();
 
-      context = tester.element(find.text('Selamat Datang 👋'));
+      context = tester.element(find.text('Selamat Datang'));
       expect(Theme.of(context).brightness, Brightness.dark);
       expect(find.byTooltip('Ganti ke mode terang'), findsOneWidget);
 
@@ -71,7 +71,7 @@ void main() {
 
       await tester.tap(find.byTooltip('Ganti ke mode terang'));
       await tester.pumpAndSettle();
-      context = tester.element(find.text('Selamat Datang 👋'));
+      context = tester.element(find.text('Selamat Datang'));
       expect(Theme.of(context).brightness, Brightness.light);
     });
   });

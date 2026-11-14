@@ -147,14 +147,14 @@ void main() {
     final api = FakeApi([const ChatDelta('Ini jawabannya.'), const ChatDone()]);
     await pasang(tester, api);
 
-    expect(find.text('Halo, aku Tripy 👋 Mau healing ke mana nih?'), findsOneWidget);
+    expect(find.text('Halo, aku Tripy. Mau jalan ke mana kita?'), findsOneWidget);
     await tester.tap(find.text('Wisata gratis apa saja?'));
     await tunggu(tester);
 
     expect(api.panggilan, 1);
     expect(find.text('Wisata gratis apa saja?'), findsOneWidget); // gelembung user
     expect(find.text('Ini jawabannya.'), findsOneWidget);
-    expect(find.text('Halo, aku Tripy 👋 Mau healing ke mana nih?'), findsNothing);
+    expect(find.text('Halo, aku Tripy. Mau jalan ke mana kita?'), findsNothing);
   });
 
   testWidgets('mengetik lalu menekan Kirim; tombol Kirim nonaktif saat input kosong', (tester) async {

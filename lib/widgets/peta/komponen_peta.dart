@@ -23,7 +23,8 @@ TileLayer lapisanUbinOsm({
   return TileLayer(
     urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
     userAgentPackageName: 'com.example.tugas_kelompok',
-    tileProvider: tileProvider ?? NetworkTileProvider(),
+    // Ubin yang gagal dimuat (offline) dibiarkan kosong, bukan dilaporkan sebagai error.
+    tileProvider: tileProvider ?? NetworkTileProvider(silenceExceptions: true),
     tileBuilder: gelap ? darkModeTileBuilder : null,
   );
 }

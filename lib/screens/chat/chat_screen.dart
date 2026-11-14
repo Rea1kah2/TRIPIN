@@ -196,8 +196,15 @@ class _Kosong extends StatelessWidget {
             child: Icon(Icons.auto_awesome, size: 38, color: colors.primary),
           ),
           const SizedBox(height: 16),
-          const Text('Halo, aku Tripy 👋 Mau healing ke mana nih?',
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+          const Text(
+            'Halo, aku Tripy. Mau jalan ke mana kita?',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.w700,
+              letterSpacing: -0.3,
+            ),
+          ),
           const SizedBox(height: 8),
           Text(
             'Aku bisa bantu milih destinasi, nyusun rencana perjalanan, '

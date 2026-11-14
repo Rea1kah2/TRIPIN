@@ -1,17 +1,22 @@
-
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../../models/destinasi.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/destinasi_provider.dart';
-import '../../models/destinasi.dart';
 import '../../routes/app_routes.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/radii.dart';
+import '../../theme/typography.dart';
+import '../../widgets/app_snackbar.dart';
+import '../../widgets/confirm_delete_dialog.dart';
+import '../../widgets/destinasi_image.dart';
 import '../../widgets/glass_app_bar.dart';
+import '../../widgets/glass_insets.dart';
 import '../../widgets/glass_panel.dart';
 import '../../widgets/glass_scaffold.dart';
-import '../../widgets/app_snackbar.dart';
+import '../../widgets/keadaan_kosong.dart';
+import '../../widgets/pressable_scale.dart';
 
 class RiwayatDestinasiScreen extends StatefulWidget {
   const RiwayatDestinasiScreen({super.key});
@@ -21,8 +26,7 @@ class RiwayatDestinasiScreen extends StatefulWidget {
       _RiwayatDestinasiScreenState();
 }
 
-class _RiwayatDestinasiScreenState
-    extends State<RiwayatDestinasiScreen> {
+class _RiwayatDestinasiScreenState extends State<RiwayatDestinasiScreen> {
   bool _memuat = true;
 
   @override
@@ -32,12 +36,15 @@ class _RiwayatDestinasiScreenState
   }
 
   Future<void> _muatRiwayat() async {
-    final userId = context.read<AuthProvider>().currentUser?.id;
+    String? userId;
+    try {
+      userId = context.read<AuthProvider>().currentUser?.id;
+    } on ProviderNotFoundException {
+      userId = null;
+    }
 
     if (userId != null) {
-      await context
-          .read<DestinasiProvider>()
-          .muatRiwayatKunjungan(userId);
+      await context.read<DestinasiProvider>().muatRiwayatKunjungan(userId);
     }
 
     if (!mounted) return;
@@ -67,40 +74,15 @@ class _RiwayatDestinasiScreenState
   }
 
   Future<void> _hapusRiwayat(
-      String userId,
-      Destinasi destinasi,
-      ) async {
-    final konfirmasi = await showDialog<bool>(
-      context: context,
-      builder: (dialogContext) {
-        return AlertDialog(
-          title: const Text('Hapus Riwayat?'),
-          content: Text(
-            'Apakah kamu yakin ingin menghapus '
-                '${destinasi.name} dari riwayat kunjungan?',
-          ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.pop(dialogContext, false);
-              },
-              child: const Text('Batal'),
-            ),
-            TextButton(
-              onPressed: () {
-                Navigator.pop(dialogContext, true);
-              },
-              child: const Text(
-                'Hapus',
-                style: TextStyle(color: Colors.red),
-              ),
-            ),
-          ],
-        );
-      },
+    String userId,
+    Destinasi destinasi,
+  ) async {
+    final konfirmasi = await showConfirmDeleteDialog(
+      context,
+      judul: 'Riwayat ${destinasi.name}',
     );
 
-    if (konfirmasi != true || !mounted) return;
+    if (!konfirmasi || !mounted) return;
 
     await context
         .read<DestinasiProvider>()
@@ -117,7 +99,12 @@ class _RiwayatDestinasiScreenState
   @override
   Widget build(BuildContext context) {
     final provider = context.watch<DestinasiProvider>();
-    final userId = context.watch<AuthProvider>().currentUser?.id;
+    String? userId;
+    try {
+      userId = context.watch<AuthProvider>().currentUser?.id;
+    } on ProviderNotFoundException {
+      userId = null;
+    }
 
     final daftarRiwayat = provider.daftarRiwayatKunjungan;
 
@@ -127,80 +114,56 @@ class _RiwayatDestinasiScreenState
       ),
       body: _memuat
           ? const Center(
-        child: CircularProgressIndicator(),
-      )
+              child: CircularProgressIndicator(),
+            )
           : userId == null
-          ? const Center(
-        child: Text('Silakan login terlebih dahulu.'),
-      )
-          : daftarRiwayat.isEmpty
-          ? _tampilanKosong(context)
-          : ListView.separated(
-        padding: const EdgeInsets.all(16),
-        itemCount: daftarRiwayat.length,
-        separatorBuilder: (_, __) =>
-        const SizedBox(height: 12),
-        itemBuilder: (context, index) {
-          final destinasi = daftarRiwayat[index];
+              ? const KeadaanKosong(
+                  ikon: Icons.lock_outline_rounded,
+                  judul: 'Masuk terlebih dahulu',
+                  pesan: 'Riwayat kunjungan tersimpan di akunmu.',
+                )
+              : daftarRiwayat.isEmpty
+                  ? KeadaanKosong(
+                      ikon: Icons.history_rounded,
+                      judul: 'Belum Ada Riwayat Destinasi',
+                      pesan:
+                          'Tandai destinasi yang sudah pernah kamu kunjungi di halaman detail wisata.',
+                      labelAksi: 'Jelajahi Destinasi',
+                      onAksi: () => Navigator.pushNamed(
+                        context,
+                        AppRoutes.pencarianRekomendasi,
+                      ),
+                    )
+                  : ListView.separated(
+                      padding: EdgeInsets.fromLTRB(
+                        16,
+                        16,
+                        16,
+                        24 + GlassInsets.bawahOf(context),
+                      ),
+                      itemCount: daftarRiwayat.length,
+                      separatorBuilder: (_, __) => const SizedBox(height: 12),
+                      itemBuilder: (context, index) {
+                        final destinasi = daftarRiwayat[index];
+                        final tanggal = provider.tanggalKunjungan(destinasi.id);
 
-          final tanggal =
-          provider.tanggalKunjungan(destinasi.id);
-
-          return _KartuRiwayat(
-            destinasi: destinasi,
-            tanggal: tanggal == null
-                ? '-'
-                : _formatTanggal(tanggal),
-            onTap: () {
-              Navigator.pushNamed(
-                context,
-                AppRoutes.destinasiDetail,
-                arguments: destinasi.id,
-              );
-            },
-            onHapus: () {
-              _hapusRiwayat(userId, destinasi);
-            },
-          );
-        },
-      ),
-    );
-  }
-
-  Widget _tampilanKosong(BuildContext context) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(28),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.history,
-              size: 76,
-              color: context.colors.primary.withValues(alpha: 0.6),
-            ),
-            const SizedBox(height: 16),
-            const Text(
-              'Belum Ada Riwayat Destinasi',
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'Destinasi yang sudah kamu kunjungi '
-                  'dan tandai akan muncul di sini.',
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                color: context.tripin.textSecondary,
-                height: 1.5,
-              ),
-            ),
-          ],
-        ),
-      ),
+                        return _KartuRiwayat(
+                          destinasi: destinasi,
+                          tanggal:
+                              tanggal == null ? '-' : _formatTanggal(tanggal),
+                          onTap: () {
+                            Navigator.pushNamed(
+                              context,
+                              AppRoutes.destinasiDetail,
+                              arguments: destinasi.id,
+                            );
+                          },
+                          onHapus: () {
+                            _hapusRiwayat(userId!, destinasi);
+                          },
+                        );
+                      },
+                    ),
     );
   }
 }
@@ -220,30 +183,21 @@ class _KartuRiwayat extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final String? foto = destinasi.fotoUtama;
+    final radiusFoto = konsentris(Radii.lg, 10);
 
-    return InkWell(
+    return PressableScale(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(Radii.lg),
       child: GlassPanel(
         radius: Radii.lg,
-        padding: const EdgeInsets.all(12),
+        padding: const EdgeInsets.all(10),
         child: Row(
           children: [
             ClipRRect(
-              borderRadius: BorderRadius.circular(12),
-              child: SizedBox(
-                width: 100,
-                height: 100,
-                child: foto != null && foto.isNotEmpty
-                    ? Image.asset(
-                  foto,
-                  fit: BoxFit.cover,
-                  errorBuilder: (_, __, ___) {
-                    return _gambarPengganti(context);
-                  },
-                )
-                    : _gambarPengganti(context),
+              borderRadius: BorderRadius.circular(radiusFoto),
+              child: DestinasiImage(
+                aset: destinasi.fotoUtama,
+                width: 96,
+                height: 96,
               ),
             ),
             const SizedBox(width: 12),
@@ -258,14 +212,15 @@ class _KartuRiwayat extends StatelessWidget {
                     style: const TextStyle(
                       fontWeight: FontWeight.w700,
                       fontSize: 15,
+                      letterSpacing: -0.2,
                     ),
                   ),
-                  const SizedBox(height: 6),
+                  const SizedBox(height: 5),
                   Row(
                     children: [
                       Icon(
                         Icons.location_on_outlined,
-                        size: 15,
+                        size: 14,
                         color: context.tripin.textSecondary,
                       ),
                       const SizedBox(width: 4),
@@ -287,14 +242,14 @@ class _KartuRiwayat extends StatelessWidget {
                     children: [
                       Icon(
                         Icons.calendar_month_outlined,
-                        size: 15,
+                        size: 14,
                         color: context.colors.primary,
                       ),
                       const SizedBox(width: 4),
                       Expanded(
                         child: Text(
                           tanggal,
-                          style: TextStyle(
+                          style: angkaTabular.copyWith(
                             fontSize: 12,
                             color: context.colors.primary,
                             fontWeight: FontWeight.w600,
@@ -307,27 +262,15 @@ class _KartuRiwayat extends StatelessWidget {
               ),
             ),
             IconButton(
-              tooltip: 'Hapus riwayat',
+              tooltip: 'Hapus riwayat ${destinasi.name}',
               onPressed: onHapus,
-              icon: const Icon(
-                Icons.delete_outline,
-                color: Colors.red,
+              icon: Icon(
+                Icons.delete_outline_rounded,
+                color: context.tripin.favoriteActive,
               ),
             ),
           ],
         ),
-      ),
-    );
-  }
-
-  Widget _gambarPengganti(BuildContext context) {
-    return Container(
-      color: context.colors.surfaceContainerHighest,
-      alignment: Alignment.center,
-      child: Icon(
-        Icons.image_not_supported_outlined,
-        size: 35,
-        color: context.tripin.textSecondary,
       ),
     );
   }

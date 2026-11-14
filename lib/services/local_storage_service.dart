@@ -2,6 +2,7 @@
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/chat_message.dart';
+import '../models/checklist_item.dart';
 import '../models/review.dart';
 import '../models/rencana_perjalanan.dart';
 import '../models/user.dart';
@@ -18,6 +19,27 @@ class LocalStorageService {
   static const _keyReduceTransparency = 'tripin_reduce_transparency';
 
   static String _keyChat(String userId) => 'tripin_chat_$userId';
+
+  static String _keyFavorit(String? userId) =>
+      (userId == null || userId.isEmpty)
+          ? _keyFavoritIds
+          : 'tripin_favorit_ids_$userId';
+
+  static String _keyRencanaUser(String? userId) =>
+      (userId == null || userId.isEmpty)
+          ? _keyRencana
+          : 'tripin_rencana_$userId';
+
+  static String _keyRencanaInitUser(String? userId) =>
+      (userId == null || userId.isEmpty)
+          ? _keyRencanaInitialized
+          : 'tripin_rencana_init_$userId';
+
+  static String _keyChecklist(String? userId) =>
+      'tripin_checklist_${(userId == null || userId.isEmpty) ? "guest" : userId}';
+
+  static String _keyChecklistInit(String? userId) =>
+      'tripin_checklist_init_${(userId == null || userId.isEmpty) ? "guest" : userId}';
 
   // Key penyimpanan riwayat kunjungan per pengguna.
   static String _keyRiwayatKunjungan(String userId) =>
@@ -161,49 +183,94 @@ class LocalStorageService {
   // FAVORIT
   // =========================
 
-  Future<Set<String>> muatFavoritIds() async {
+  Future<Set<String>> muatFavoritIds({String? userId}) async {
     final prefs = await SharedPreferences.getInstance();
 
-    return (prefs.getStringList(_keyFavoritIds) ?? []).toSet();
+    return (prefs.getStringList(_keyFavorit(userId)) ?? []).toSet();
   }
 
-  Future<void> simpanFavoritIds(Set<String> ids) async {
+  Future<void> simpanFavoritIds(Set<String> ids, {String? userId}) async {
     final prefs = await SharedPreferences.getInstance();
 
-    await prefs.setStringList(_keyFavoritIds, ids.toList());
+    await prefs.setStringList(_keyFavorit(userId), ids.toList());
   }
 
   // =========================
   // RENCANA PERJALANAN
   // =========================
 
-  Future<bool> rencanaSudahDiinisialisasi() async {
+  Future<bool> rencanaSudahDiinisialisasi({String? userId}) async {
     final prefs = await SharedPreferences.getInstance();
 
-    return prefs.getBool(_keyRencanaInitialized) ?? false;
+    return prefs.getBool(_keyRencanaInitUser(userId)) ?? false;
   }
 
-  Future<List<RencanaPerjalanan>> muatRencana() async {
+  Future<List<RencanaPerjalanan>> muatRencana({String? userId}) async {
     final prefs = await SharedPreferences.getInstance();
-    final raw = prefs.getString(_keyRencana);
+    final raw = prefs.getString(_keyRencanaUser(userId));
 
     if (raw == null) return [];
 
-    return (jsonDecode(raw) as List)
-        .map((e) => RencanaPerjalanan.fromJson(e as Map<String, dynamic>))
-        .toList();
+    try {
+      return (jsonDecode(raw) as List)
+          .map((e) => RencanaPerjalanan.fromJson(e as Map<String, dynamic>))
+          .toList();
+    } catch (_) {
+      return [];
+    }
   }
 
   Future<void> simpanRencana(
-      List<RencanaPerjalanan> rencana) async {
+    List<RencanaPerjalanan> rencana, {
+    String? userId,
+  }) async {
     final prefs = await SharedPreferences.getInstance();
 
     await prefs.setString(
-      _keyRencana,
+      _keyRencanaUser(userId),
       jsonEncode(rencana.map((r) => r.toJson()).toList()),
     );
 
-    await prefs.setBool(_keyRencanaInitialized, true);
+    await prefs.setBool(_keyRencanaInitUser(userId), true);
+  }
+
+  // =========================
+  // CHECKLIST PERSIAPAN
+  // =========================
+
+  Future<List<ChecklistItem>> muatChecklist({String? userId}) async {
+    final prefs = await SharedPreferences.getInstance();
+    final sudahInit = prefs.getBool(_keyChecklistInit(userId)) ?? false;
+
+    if (!sudahInit) {
+      final bawaan = ChecklistItem.bawaanAwal();
+      await simpanChecklist(bawaan, userId: userId);
+      return bawaan;
+    }
+
+    final raw = prefs.getString(_keyChecklist(userId));
+    if (raw == null) return [];
+
+    try {
+      return [
+        for (final item in jsonDecode(raw) as List)
+          if (ChecklistItem.tryFromJson(item) case final parsed?) parsed,
+      ];
+    } catch (_) {
+      return [];
+    }
+  }
+
+  Future<void> simpanChecklist(
+    List<ChecklistItem> items, {
+    String? userId,
+  }) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(
+      _keyChecklist(userId),
+      jsonEncode(items.map((item) => item.toJson()).toList()),
+    );
+    await prefs.setBool(_keyChecklistInit(userId), true);
   }
 
   // =========================

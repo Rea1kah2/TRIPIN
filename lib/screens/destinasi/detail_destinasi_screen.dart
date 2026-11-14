@@ -19,6 +19,7 @@ import '../../theme/typography.dart';
 import '../../widgets/glass_button.dart';
 import '../../widgets/glass_panel.dart';
 import '../../providers/review_provider.dart';
+import '../../widgets/pressable_scale.dart';
 import '../../widgets/review/review_section.dart';
 import '../../providers/lokasi_provider.dart';
 import '../../utils/geo.dart';
@@ -31,6 +32,14 @@ String jarakTeks(BuildContext context, Destinasi d) {
   return jarak == null
       ? d.location
       : '${d.location} · ${formatJarak(jarak)} dari kamu$perkiraan';
+}
+
+String? _watchUserIdAman(BuildContext context) {
+  try {
+    return context.watch<AuthProvider>().currentUser?.id;
+  } on ProviderNotFoundException {
+    return null;
+  }
 }
 
 class DetailDestinasiScreen extends StatelessWidget {
@@ -242,23 +251,34 @@ class DetailDestinasiScreen extends StatelessWidget {
 
                         const SizedBox(height: 8),
 
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 12,
-                            vertical: 4,
-                          ),
-                          decoration: BoxDecoration(
-                            color: primary.withOpacity(0.16),
-                            borderRadius: BorderRadius.circular(999),
-                          ),
-                          child: Text(
-                            labelKategori,
-                            style: TextStyle(
-                              color: primary,
-                              fontWeight: FontWeight.w600,
-                              fontSize: 13,
+                        Wrap(
+                          spacing: 8,
+                          runSpacing: 8,
+                          crossAxisAlignment: WrapCrossAlignment.center,
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                                vertical: 6,
+                              ),
+                              decoration: BoxDecoration(
+                                color: primary.withOpacity(0.16),
+                                borderRadius: BorderRadius.circular(999),
+                              ),
+                              child: Text(
+                                labelKategori,
+                                style: TextStyle(
+                                  color: primary,
+                                  fontWeight: FontWeight.w600,
+                                  fontSize: 13,
+                                ),
+                              ),
                             ),
-                          ),
+                            _ChipStatusKunjungan(
+                              destinasiId: destinasi.id,
+                              namaDestinasi: destinasi.name,
+                            ),
+                          ],
                         ),
 
                         const SizedBox(height: 12),
@@ -337,14 +357,7 @@ class DetailDestinasiScreen extends StatelessWidget {
 
                   const SizedBox(height: 28),
 
-                  // FITUR BARU: Riwayat destinasi yang dikunjungi.
-                  TombolRiwayatKunjungan(
-                    destinasiId: destinasi.id,
-                  ),
-
-                  const SizedBox(height: 12),
-
-                  // Fitur lama: Tambah ke Rencana.
+                  // Tambah ke Rencana.
                   GlassButton(
                     label: 'Tambah ke Rencana',
                     icon: Icons.map_outlined,
@@ -356,7 +369,7 @@ class DetailDestinasiScreen extends StatelessWidget {
 
                   const SizedBox(height: 12),
 
-                  // Fitur lama: Tanya Tripy.
+                  // Tanya Tripy.
                   GlassButton(
                     label: 'Tanya Tripy tentang tempat ini',
                     icon: Icons.auto_awesome,
@@ -365,7 +378,7 @@ class DetailDestinasiScreen extends StatelessWidget {
                       context,
                       AppRoutes.chat,
                       arguments:
-                      'Ceritakan tentang ${destinasi.name} dan apa yang bisa dilakukan di sana.',
+                          'Ceritakan tentang ${destinasi.name} dan apa yang bisa dilakukan di sana.',
                     ),
                   ),
 
@@ -380,115 +393,128 @@ class DetailDestinasiScreen extends StatelessWidget {
   }
 }
 
-/// Tombol untuk menandai destinasi yang benar-benar sudah dikunjungi.
-class TombolRiwayatKunjungan extends StatefulWidget {
+/// Chip interaktif untuk menandai / membatalkan status kunjungan destinasi.
+class _ChipStatusKunjungan extends StatefulWidget {
   final String destinasiId;
+  final String namaDestinasi;
 
-  const TombolRiwayatKunjungan({
-    super.key,
+  const _ChipStatusKunjungan({
     required this.destinasiId,
+    required this.namaDestinasi,
   });
 
   @override
-  State<TombolRiwayatKunjungan> createState() =>
-      _TombolRiwayatKunjunganState();
+  State<_ChipStatusKunjungan> createState() => _ChipStatusKunjunganState();
 }
 
-class _TombolRiwayatKunjunganState
-    extends State<TombolRiwayatKunjungan> {
-  bool _memuat = true;
+class _ChipStatusKunjunganState extends State<_ChipStatusKunjungan> {
   bool _menyimpan = false;
 
-  @override
-  void initState() {
-    super.initState();
+  String _formatRingkas(DateTime t) =>
+      '${t.day.toString().padLeft(2, '0')}/${t.month.toString().padLeft(2, '0')}/${t.year}';
 
-    WidgetsBinding.instance.addPostFrameCallback((_) async {
+  Future<void> _handleToggle(String? userId, DestinasiProvider provider) async {
+    if (_menyimpan) return;
+    if (userId == null) {
+      showAppSnackbar(
+        context,
+        'Silakan login terlebih dahulu.',
+      );
+      return;
+    }
+    setState(() => _menyimpan = true);
+    try {
+      final statusBaru = await provider.toggleKunjungan(
+        userId,
+        widget.destinasiId,
+      );
       if (!mounted) return;
-
-      final userId =
-          context.read<AuthProvider>().currentUser?.id;
-
-      if (userId != null) {
-        await context
-            .read<DestinasiProvider>()
-            .muatRiwayatKunjungan(userId);
-      }
-
-      if (mounted) {
-        setState(() {
-          _memuat = false;
-        });
-      }
-    });
+      showAppSnackbar(
+        context,
+        statusBaru
+            ? '${widget.namaDestinasi} ditandai sudah dikunjungi'
+            : 'Status kunjungan ${widget.namaDestinasi} dihapus',
+      );
+    } catch (_) {
+      if (!mounted) return;
+      showAppSnackbar(
+        context,
+        'Gagal memperbarui status kunjungan.',
+        isError: true,
+      );
+    } finally {
+      if (mounted) setState(() => _menyimpan = false);
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    final userId =
-        context.watch<AuthProvider>().currentUser?.id;
-
+    final userId = _watchUserIdAman(context);
     final provider = context.watch<DestinasiProvider>();
+    final scheme = context.colors;
+    final tripin = context.tripin;
 
-    final sudahDikunjungi = userId != null &&
-        provider.sudahDikunjungi(widget.destinasiId);
+    final sudahDikunjungi =
+        userId != null && provider.sudahDikunjungi(widget.destinasiId);
+    final tanggal =
+        sudahDikunjungi ? provider.tanggalKunjungan(widget.destinasiId) : null;
 
-    return GlassButton(
-      label: _memuat
-          ? 'Memuat Riwayat...'
-          : _menyimpan
-          ? 'Menyimpan...'
-          : sudahDikunjungi
-          ? 'Sudah Dikunjungi'
-          : 'Tandai Sudah Dikunjungi',
-      icon: sudahDikunjungi
-          ? Icons.check_circle
-          : Icons.history,
-      melebar: true,
-      onPressed: () async {
-        if (_memuat || _menyimpan || sudahDikunjungi) {
-          return;
-        }
+    final label = _menyimpan
+        ? 'Menyimpan…'
+        : sudahDikunjungi
+            ? (tanggal != null
+                ? 'Dikunjungi · ${_formatRingkas(tanggal)}'
+                : 'Sudah dikunjungi')
+            : 'Tandai dikunjungi';
 
-        if (userId == null) {
-          showAppSnackbar(
-            context,
-            'Silakan login terlebih dahulu.',
-          );
-          return;
-        }
-
-        setState(() {
-          _menyimpan = true;
-        });
-
-        try {
-          await provider.tandaiSudahDikunjungi(
-            userId,
-            widget.destinasiId,
-          );
-
-          if (!mounted) return;
-
-          showAppSnackbar(
-            context,
-            'Destinasi berhasil ditambahkan ke riwayat kunjungan!',
-          );
-        } catch (e) {
-          if (!mounted) return;
-
-          showAppSnackbar(
-            context,
-            'Riwayat kunjungan gagal disimpan.',
-          );
-        } finally {
-          if (mounted) {
-            setState(() {
-              _menyimpan = false;
-            });
-          }
-        }
-      },
+    return Semantics(
+      button: true,
+      label: label,
+      child: PressableScale(
+        onTap: () => _handleToggle(userId, provider),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+          decoration: BoxDecoration(
+            color: sudahDikunjungi
+                ? scheme.primary.withOpacity(0.16)
+                : scheme.onSurface.withOpacity(0.06),
+            borderRadius: BorderRadius.circular(999),
+            border: Border.all(
+              color: sudahDikunjungi
+                  ? scheme.primary.withOpacity(0.45)
+                  : scheme.outlineVariant.withOpacity(0.6),
+            ),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                sudahDikunjungi
+                    ? Icons.check_circle_rounded
+                    : Icons.check_circle_outline_rounded,
+                size: 16,
+                color:
+                    sudahDikunjungi ? scheme.primary : tripin.textSecondary,
+              ),
+              const SizedBox(width: 6),
+              Flexible(
+                child: Text(
+                  label,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: angkaTabular.copyWith(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                    color: sudahDikunjungi
+                        ? scheme.primary
+                        : scheme.onSurface.withOpacity(0.84),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }

@@ -1,6 +1,3 @@
-
-import 'dart:ui';
-
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -14,7 +11,6 @@ import '../../widgets/glass_button.dart';
 import '../../widgets/glass_insets.dart';
 import '../../widgets/glass_panel.dart';
 import '../../widgets/glass_scaffold.dart';
-import '../../widgets/pressable_scale.dart';
 import '../../widgets/theme_toggle_button.dart';
 import '../destinasi/favorit_screen.dart';
 import 'kredit_foto_screen.dart';
@@ -28,6 +24,44 @@ class ProfilScreen extends StatelessWidget {
     final user = context.watch<AuthProvider>().currentUser;
     final primary = context.colors.primary;
     final tripin = context.tripin;
+    final dividerColor = context.colors.outlineVariant.withOpacity(0.45);
+
+    final menuItems = [
+      (
+        icon: Icons.map_outlined,
+        label: 'Rencana Perjalanan Saya',
+        onTap: () => Navigator.pushNamed(context, AppRoutes.rencanaList),
+      ),
+      (
+        icon: Icons.checklist_rounded,
+        label: 'Checklist Persiapan',
+        onTap: () => Navigator.pushNamed(context, AppRoutes.checklist),
+      ),
+      (
+        icon: Icons.history_rounded,
+        label: 'Riwayat Destinasi',
+        onTap: () => Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => const RiwayatDestinasiScreen()),
+        ),
+      ),
+      (
+        icon: Icons.favorite_border,
+        label: 'Destinasi Favorit',
+        onTap: () => Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => const FavoritScreen()),
+        ),
+      ),
+      (
+        icon: Icons.photo_library_outlined,
+        label: 'Kredit Foto',
+        onTap: () => Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => const KreditFotoScreen()),
+        ),
+      ),
+    ];
 
     return GlassScaffold(
       appBar: const GlassAppBar(judul: 'Profil'),
@@ -67,7 +101,8 @@ class ProfilScreen extends StatelessWidget {
                         user?.nama ?? 'Traveler',
                         style: const TextStyle(
                           fontSize: 20,
-                          fontWeight: FontWeight.w600,
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: -0.3,
                         ),
                       ),
                       const SizedBox(height: 4),
@@ -84,74 +119,38 @@ class ProfilScreen extends StatelessWidget {
             ),
           ),
 
-          const SizedBox(height: 20),
+          const SizedBox(height: 16),
 
           // Pengaturan tampilan
           const _TampilanTile(),
 
-          const SizedBox(height: 12),
+          const SizedBox(height: 16),
 
-          // Rencana Perjalanan Saya
-          _MenuItem(
-            icon: Icons.map_outlined,
-            label: 'Rencana Perjalanan Saya',
-            onTap: () {
-              Navigator.pushNamed(
-                context,
-                AppRoutes.rencanaList,
-              );
-            },
+          // Grup menu perjalanan & pustaka dalam satu GlassPanel terpadu
+          GlassPanel(
+            radius: Radii.lg,
+            padding: const EdgeInsets.symmetric(vertical: 4),
+            child: Column(
+              children: [
+                for (var i = 0; i < menuItems.length; i++) ...[
+                  if (i > 0)
+                    Divider(
+                      height: 1,
+                      indent: 56,
+                      endIndent: 16,
+                      color: dividerColor,
+                    ),
+                  _MenuRow(
+                    icon: menuItems[i].icon,
+                    label: menuItems[i].label,
+                    onTap: menuItems[i].onTap,
+                  ),
+                ],
+              ],
+            ),
           ),
 
-          const SizedBox(height: 12),
-
-          // Riwayat Destinasi
-          _MenuItem(
-            icon: Icons.history,
-            label: 'Riwayat Destinasi',
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => const RiwayatDestinasiScreen(),
-                ),
-              );
-            },
-          ),
-
-          const SizedBox(height: 12),
-
-          // Destinasi Favorit
-          _MenuItem(
-            icon: Icons.favorite_border,
-            label: 'Destinasi Favorit',
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => const FavoritScreen(),
-                ),
-              );
-            },
-          ),
-
-          const SizedBox(height: 12),
-
-          // Kredit Foto
-          _MenuItem(
-            icon: Icons.photo_library_outlined,
-            label: 'Kredit Foto',
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => const KreditFotoScreen(),
-                ),
-              );
-            },
-          ),
-
-          const SizedBox(height: 12),
+          const SizedBox(height: 16),
 
           // Tentang TRIPIN
           GlassPanel(
@@ -163,16 +162,17 @@ class ProfilScreen extends StatelessWidget {
                 const Text(
                   'Tentang TRIPIN',
                   style: TextStyle(
-                    fontWeight: FontWeight.w600,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: -0.2,
                   ),
                 ),
                 const SizedBox(height: 6),
                 Text(
                   'TRIPIN adalah aplikasi discovery & perencana wisata Sumatera Utara. '
-                      'Dibangun sebagai tugas kelompok mata kuliah Pemrograman Mobile.',
+                  'Dibangun sebagai tugas kelompok mata kuliah Pemrograman Mobile.',
                   style: TextStyle(
                     color: tripin.textSecondary,
-                    height: 1.4,
+                    height: 1.45,
                   ),
                 ),
               ],
@@ -193,7 +193,7 @@ class ProfilScreen extends StatelessWidget {
               Navigator.pushNamedAndRemoveUntil(
                 context,
                 AppRoutes.login,
-                    (route) => false,
+                (route) => false,
               );
             },
           ),
@@ -213,15 +213,9 @@ class _TampilanTile extends StatelessWidget {
     final tema = context.watch<ThemeProvider>();
     final scheme = context.colors;
 
-    return Container(
+    return GlassPanel(
+      radius: Radii.lg,
       padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: scheme.surface,
-        borderRadius: BorderRadius.circular(Radii.lg),
-        border: Border.all(
-          color: scheme.outlineVariant,
-        ),
-      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -266,9 +260,7 @@ class _TampilanTile extends StatelessWidget {
               ],
               selected: {tema.themeMode},
               onSelectionChanged: (pilihan) {
-                context
-                    .read<ThemeProvider>()
-                    .setThemeMode(pilihan.first);
+                context.read<ThemeProvider>().setThemeMode(pilihan.first);
               },
             ),
           ),
@@ -277,7 +269,7 @@ class _TampilanTile extends StatelessWidget {
 
           Divider(
             height: 1,
-            color: scheme.outlineVariant,
+            color: scheme.outlineVariant.withOpacity(0.45),
           ),
 
           const SizedBox(height: 16),
@@ -311,22 +303,17 @@ class _TampilanTile extends StatelessWidget {
 
           Slider(
             value: tema.glassIntensity,
-            semanticFormatterCallback: (v) =>
-            '${(v * 100).round()} persen',
+            semanticFormatterCallback: (v) => '${(v * 100).round()} persen',
             onChanged: tema.reduceTransparency
                 ? null
                 : (v) {
-              context
-                  .read<ThemeProvider>()
-                  .setGlassIntensity(
-                v,
-                simpan: false,
-              );
-            },
+                    context.read<ThemeProvider>().setGlassIntensity(
+                          v,
+                          simpan: false,
+                        );
+                  },
             onChangeEnd: (_) {
-              context
-                  .read<ThemeProvider>()
-                  .simpanGlassIntensity();
+              context.read<ThemeProvider>().simpanGlassIntensity();
             },
           ),
 
@@ -373,9 +360,7 @@ class _TampilanTile extends StatelessWidget {
             ),
             value: tema.reduceTransparency,
             onChanged: (v) {
-              context
-                  .read<ThemeProvider>()
-                  .setReduceTransparency(v);
+              context.read<ThemeProvider>().setReduceTransparency(v);
             },
           ),
         ],
@@ -427,13 +412,13 @@ class _PratinjauKaca extends StatelessWidget {
   }
 }
 
-// Komponen menu profil.
-class _MenuItem extends StatelessWidget {
+// Baris menu profil di dalam panel terpadu.
+class _MenuRow extends StatelessWidget {
   final IconData icon;
   final String label;
   final VoidCallback onTap;
 
-  const _MenuItem({
+  const _MenuRow({
     required this.icon,
     required this.label,
     required this.onTap,
@@ -444,35 +429,39 @@ class _MenuItem extends StatelessWidget {
     return Semantics(
       button: true,
       label: label,
-      child: PressableScale(
-        onTap: onTap,
-        child: GlassPanel(
-          radius: Radii.lg,
-          padding: const EdgeInsets.symmetric(
-            horizontal: 16,
-            vertical: 16,
-          ),
-          child: Row(
-            children: [
-              Icon(
-                icon,
-                color: context.colors.primary,
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Text(
-                  label,
-                  style: const TextStyle(
-                    fontWeight: FontWeight.w500,
+      child: Material(
+        type: MaterialType.transparency,
+        child: InkWell(
+          onTap: onTap,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(
+              horizontal: 16,
+              vertical: 15,
+            ),
+            child: Row(
+              children: [
+                Icon(
+                  icon,
+                  color: context.colors.primary,
+                  size: 22,
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Text(
+                    label,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.w500,
+                      fontSize: 15,
+                    ),
                   ),
                 ),
-              ),
-              Icon(
-                Icons.arrow_forward_ios,
-                size: 14,
-                color: context.tripin.textSecondary,
-              ),
-            ],
+                Icon(
+                  Icons.chevron_right_rounded,
+                  size: 20,
+                  color: context.tripin.textSecondary,
+                ),
+              ],
+            ),
           ),
         ),
       ),

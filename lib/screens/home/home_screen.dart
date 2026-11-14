@@ -61,6 +61,12 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     final provider = context.watch<DestinasiProvider>();
+    final user = context.watch<AuthProvider>().currentUser;
+    final namaLengkap = user?.nama.trim() ?? '';
+    final namaSapaan = namaLengkap.isEmpty
+        ? 'Traveler'
+        : namaLengkap.split(RegExp(r'\s+')).first;
+
     final hasilPencarian = provider.cari(
       query: searchController.text,
       kategoriId: selectedKategoriId,
@@ -77,14 +83,20 @@ class _HomePageState extends State<HomePage> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Halo, Traveler 👋',
+              'Halo, $namaSapaan',
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
               style:
                   TextStyle(fontSize: 14, color: context.tripin.textSecondary),
             ),
             const SizedBox(height: 3),
             const Text(
               'Mau pergi ke mana?',
-              style: TextStyle(fontSize: 19, fontWeight: FontWeight.bold),
+              style: TextStyle(
+                fontSize: 19,
+                fontWeight: FontWeight.w700,
+                letterSpacing: -0.3,
+              ),
             ),
           ],
         ),
@@ -165,12 +177,14 @@ class _HomePageState extends State<HomePage> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Jelajahi Keindahan\nSumatera Utara 🌿',
+                      'Jelajahi Keindahan\nSumatera Utara',
                       style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 21,
-                          fontWeight: FontWeight.bold,
-                          height: 1.2),
+                        color: Colors.white,
+                        fontSize: 22,
+                        fontWeight: FontWeight.w800,
+                        height: 1.15,
+                        letterSpacing: -0.5,
+                      ),
                     ),
                     SizedBox(height: 8),
                     Text(
@@ -236,8 +250,14 @@ class _HomePageState extends State<HomePage> {
             const SizedBox(height: 28),
 
             // CATEGORY (sekarang benar-benar jadi filter)
-            const Text('Kategori Wisata',
-                style: TextStyle(fontSize: 19, fontWeight: FontWeight.bold)),
+            const Text(
+              'Kategori Wisata',
+              style: TextStyle(
+                fontSize: 19,
+                fontWeight: FontWeight.w700,
+                letterSpacing: -0.3,
+              ),
+            ),
             const SizedBox(height: 15),
             SizedBox(
               height: 44,
@@ -271,9 +291,14 @@ class _HomePageState extends State<HomePage> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text('Rekomendasi Untukmu',
-                    style:
-                        TextStyle(fontSize: 19, fontWeight: FontWeight.bold)),
+                const Text(
+                  'Rekomendasi Untukmu',
+                  style: TextStyle(
+                    fontSize: 19,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: -0.3,
+                  ),
+                ),
                 TextButton(
                   onPressed: () =>
                       Navigator.pushNamed(context, AppRoutes.destinasiList),
@@ -315,8 +340,14 @@ class _HomePageState extends State<HomePage> {
             const SizedBox(height: 30),
 
             // NEARBY
-            const Text('Wisata di Sekitar Kamu 📍',
-                style: TextStyle(fontSize: 19, fontWeight: FontWeight.bold)),
+            const Text(
+              'Wisata di Sekitar Kamu',
+              style: TextStyle(
+                fontSize: 19,
+                fontWeight: FontWeight.w700,
+                letterSpacing: -0.3,
+              ),
+            ),
             const SizedBox(height: 6),
             Text(
               'Temukan tempat menarik yang dekat dengan lokasimu.',
