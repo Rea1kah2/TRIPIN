@@ -23,7 +23,7 @@ export function buatGeminiClient(apiKey: string, modelDefault: string): LlmClien
               }
             : {}),
           abortSignal: req.signal,
-          httpOptions: { timeout: 45_000 }, // jangan menggantung selamanya bila Gemini tidak merespons
+          httpOptions: { timeout: 25_000 }, // jangan menggantung selamanya bila Gemini tidak merespons
         },
       });
 

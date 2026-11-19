@@ -34,9 +34,9 @@ export interface OpsiChat {
 
 const MAKS_PUTARAN = 5; // batas bolak-balik model <-> tool
 const MAKS_PERCOBAAN = 3; // 1 percobaan awal + 2 ulang untuk error sementara
-const JEDA_DASAR_MS = 1500;
+const JEDA_DASAR_MS = 800;
 const TUNGGU_MAKS_MS = 6000; // limit yang menyuruh tunggu lebih lama dari ini tidak ditunggu di tempat
-const ANGGARAN_TUNGGU_MS = 10_000; // total waktu tunggu (backoff) yang boleh dihabiskan satu chat, lintas model
+const ANGGARAN_TUNGGU_MS = 8_000; // total waktu tunggu (backoff) yang boleh dihabiskan satu chat, lintas model
 
 /** Tool yang hanya menampilkan sesuatu; bila jawaban teks sudah ada, giliran bisa langsung selesai. */
 const TOOL_AKHIR = new Set(['usulkan_rencana']);
@@ -86,16 +86,32 @@ function pesanDari(err: unknown): string {
   return err instanceof Error ? err.message : String(err);
 }
 
-/** Error sementara yang layak diulang: limit/overload, atau gangguan jaringan/stream tanpa status HTTP. */
+/** Error sementara atau model tidak valid yang layak diulang/fallback: limit/overload, not found (retired model), atau gangguan jaringan. */
 function dapatDiulang(err: unknown): boolean {
   const s = statusDari(err);
-  if (s !== undefined) return s === 429 || s === 503;
-  return /incomplete json|fetch failed|econnreset|etimedout|socket|terminated|network/i.test(pesanDari(err));
+  if (s !== undefined) return s === 429 || s === 503 || s === 404;
+  return /incomplete json|fetch failed|econnreset|etimedout|socket|terminated|network|not found/i.test(pesanDari(err));
 }
 
-/** Membaca "Please retry in 46.9s" dari pesan error Gemini (dalam milidetik). */
+/** Membaca durasi tunda/retry dari pesan error Gemini atau RPC RetryInfo (dalam milidetik). */
 export function tundaDariError(err: unknown): number | undefined {
-  const m = /retry in ([\d.]+)\s*s/i.exec(pesanDari(err));
+  const p = pesanDari(err);
+  // Cek JSON retryDelay: "68791s"
+  const mDelay = /retryDelay"?\s*:\s*"?(\d+)s/i.exec(p);
+  if (mDelay) return Number(mDelay[1]) * 1000;
+
+  // Cek format jam/menit/detik: retry in 19h30m31s
+  const mHms = /retry in\s+(?:(\d+)h)?(?:(\d+)m)?(?:([\d.]+)s)?/i.exec(p);
+  if (mHms && (mHms[1] || mHms[2] || mHms[3])) {
+    const jam = Number(mHms[1] || 0);
+    const menit = Number(mHms[2] || 0);
+    const detik = Number(mHms[3] || 0);
+    const totalMs = (jam * 3600 + menit * 60 + detik) * 1000;
+    if (totalMs > 0) return Math.ceil(totalMs);
+  }
+
+  // Format standar: retry in 46.9s
+  const m = /retry in ([\d.]+)\s*s/i.exec(p);
   if (!m) return undefined;
   const detik = Number(m[1]);
   return Number.isFinite(detik) ? Math.ceil(detik * 1000) : undefined;
@@ -182,11 +198,14 @@ export async function jalankanChat(opsi: OpsiChat): Promise<void> {
 
           const tunda = tundaDariError(err);
           const tundaEfektif = tunda ?? JEDA_DASAR_MS * 2 ** (percobaan - 1);
+          const bukanModelValid = statusDari(err) === 404;
           const limitPanjang =
             statusDari(err) === 429 && tunda !== undefined && (tunda > TUNGGU_MAKS_MS || tunda > sisaTunggu);
-          const menyerah = limitPanjang || percobaan >= MAKS_PERCOBAAN || tundaEfektif > sisaTunggu;
+          const menyerah = bukanModelValid || limitPanjang || percobaan >= MAKS_PERCOBAAN || tundaEfektif > sisaTunggu;
           const adaCadangan = idxModel < chain.length - 1;
-          if (menyerah && statusDari(err) === 429) tandaiHabis(chain[idxModel], tunda ?? 15_000);
+          if (menyerah && (statusDari(err) === 429 || bukanModelValid)) {
+            tandaiHabis(chain[idxModel], bukanModelValid ? 24 * 3600_000 : (tunda ?? 15_000));
+          }
 
           // Putaran pertama: pindah model langsung. Putaran berikutnya: thought signature terikat ke
           // model, jadi tidak boleh ganti di tengah; bila belum ada teks yang terkirim, ulang giliran
