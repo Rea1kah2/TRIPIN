@@ -206,8 +206,7 @@ lokasi; app membulatkan ke 2 desimal, sekitar 1 km). `GET /health` untuk pengece
 
 ## 6. Desain dan styling
 
-Desain mengikuti dokumen internal **Liquid Glass Design System** (`CLAUDE-liquid-glass.md` dan
-`liquid-glass-design-system.md`) dengan penyesuaian di bawah. Palet mint-hijau yang sudah ada **tidak diubah**.
+Desain mengikuti dokumen internal **Liquid Glass Design System** (`liquid-glass-design-system.md`) dengan penyesuaian di bawah. Palet mint-hijau yang sudah ada **tidak diubah**.
 
 ### 6.1 Palet dan tema
 
